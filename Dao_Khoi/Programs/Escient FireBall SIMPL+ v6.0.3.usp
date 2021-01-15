@@ -1,0 +1,2740 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+*******************************************************************************************/
+/*
+Manufacturer Name: Escient
+System Name:FireBall
+Module Version: v6.0                                                      
+Programmer: Chris Commons and Brian Meek                                                                                         
+Comments: All FireBall Models with software v4.2 or greater                                   
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+*******************************************************************************************/
+#SYMBOL_NAME "Escient FireBall SIMPL+ v6.0.3"
+#HINT "Escient FireBall SIMPL+ v6.0.3"
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+
+#DEFINE_CONSTANT iMaxListCount 9
+#DEFINE_CONSTANT iAltListCount 4 // Used for small panels
+#DEFINE_CONSTANT iListTotal 45 //(iMaxListCount * 5 (Number of Guide Levels))
+#DEFINE_CONSTANT iMaxDataLength 200
+#DEFINE_CONSTANT iMovieDescriptionLength 50
+#DEFINE_CONSTANT iMaxGroupCount 500
+#DEFINE_CONSTANT iGroupTotal 1500 //(iMaxGroupCount * 3 (Music, Radio, Movies))
+#DEFINE_CONSTANT iPlayListTotal 500 // Limit to the first 500 for perfomance - this can be increased if necessary
+#DEFINE_CONSTANT iPlayListLoopCount 10 // Playlists Cache Data Count
+#DEFINE_CONSTANT iSlideMin 500
+#DEFINE_CONSTANT iSlideMax 65000
+
+#DEFINE_CONSTANT iCachePlayListData 1
+
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+*******************************************************************************************/
+DIGITAL_INPUT MusicSupport, RadioSupport, MovieSupport, CoverSupport, Debug;
+DIGITAL_INPUT FBUpdate;
+DIGITAL_INPUT GuideHome, GuideBack, GuidePageUp, GuidePageDn, GuideSlide;
+DIGITAL_INPUT AltGuidePageUp, AltGuidePageDn;
+DIGITAL_INPUT PlayerOn;
+DIGITAL_INPUT PlayerPageUp, PlayerPageDn, PlayerSlide;
+DIGITAL_INPUT Search, GuideOptions, PlayerOptions;
+DIGITAL_INPUT KBSave, KBCancel, KBClear;
+DIGITAL_INPUT PlayMode;
+DIGITAL_INPUT MessageContinue, MessageCancel;
+DIGITAL_INPUT MovieDetailsPlay, MovieDetailsPageUp, MovieDetailsPageDn;
+DIGITAL_INPUT VideoControls;
+DIGITAL_INPUT TouchUp;
+DIGITAL_INPUT RemoteKB, RemoteKBCancel;
+DIGITAL_INPUT GuideSelect[iMaxListCount];
+DIGITAL_INPUT JBSelect[iMaxListCount];
+DIGITAL_INPUT PlayerTrackSelect[iMaxListCount];
+DIGITAL_INPUT PlayModeSelect[7];
+DIGITAL_INPUT GuideOptionsSelect[2];
+DIGITAL_INPUT GuideOptionsMusicSelect[5];
+DIGITAL_INPUT PlayerOptionsMusicSelect[4];
+DIGITAL_INPUT JBOptionSelect[5];
+DIGITAL_INPUT RemoteSelect[100];
+
+ANALOG_INPUT EscConnectStatus;
+ANALOG_INPUT GuideSlideIn, PlayerSlideIn;
+ANALOG_INPUT NavigateX, NavigateY;
+
+BUFFER_INPUT EscRX$[32767];
+STRING_INPUT LastEscTx$[1000];
+
+DIGITAL_OUTPUT EscConnect;
+DIGITAL_OUTPUT GuideListSubFB, GuideMusicCoversFB, GuideMovieCoversSubFB, GuideMovieDetailsSubFB;
+DIGITAL_OUTPUT GuideKeyboardSubFB, PlayerKeyboardSubFB, SearchNoMatchFB, DialogSubFB, MessageSubFB;
+DIGITAL_OUTPUT PlayerPageFB, PlayerMusicSubFB, PlayerRadioSubFB, PlayerMovieSubFB, PlayModeSubFB;
+DIGITAL_OUTPUT GuideOptionsMusicSubFB, GuideOptionsSubFB, PlayerOptionsMusicSubFB, VideoControlsSubFB, RemoteKBSubFB;
+DIGITAL_OUTPUT JBOptionsSubFB, JBSelectFB[iMaxListCount];
+
+ANALOG_OUTPUT GuideSlideOut, PlayerSlideOut;
+ANALOG_OUTPUT GuideTitleIcon, PlayState;
+
+STRING_OUTPUT EscTx$;
+STRING_OUTPUT Keyboard$, KeyboardLabel$, KeyboardKeyLabel$, MessageKeyLabel$;
+STRING_OUTPUT FBName$;
+STRING_OUTPUT GuideTitle$;
+STRING_OUTPUT AltGuideTitle$;
+STRING_OUTPUT GuideData$[iMaxListCount];
+STRING_OUTPUT AltGuideData$[iMaxListCount];
+STRING_OUTPUT NowPlaying$[5];
+STRING_OUTPUT PlayerData$[iMaxListCount];
+STRING_OUTPUT Message$[3];
+STRING_OUTPUT GuideCoverURLs$[iMaxListCount];
+STRING_OUTPUT MovieDetails$[4];
+STRING_OUTPUT MovieDetailsData$[iMaxListCount];
+
+ANALOG_OUTPUT GuideDataIcon[iMaxListCount];
+
+/*******************************************************************************************
+  Structure Definitions
+*******************************************************************************************/
+
+Structure EscData
+{
+   String sTitle[iMaxDataLength];
+   Integer iCommand;
+   Integer iGroupType;
+   Integer iGroup;
+   Integer iContainer;
+   Integer iCount;
+   Integer iIndex; 
+   Integer iView;
+   Integer iTag1[iMaxListCount];
+   Integer iTag2[iMaxListCount];
+   Integer iGuideDataIcon;
+};
+
+EscData tGuideData[3];
+EscData tPlayerData;
+
+String sGuideData[iListTotal][iMaxDataLength];
+String sGuideTitle[iMaxDataLength];
+String sGuideURLs[iMaxListCount][500];
+Integer iGuideData[iListTotal];
+
+Structure CacheData
+{
+   String sName[iMaxDataLength];
+   Integer iCount;
+   Integer iOffSet;
+};
+
+CacheData tMediaGroups[iGroupTotal];
+CacheData tPlayLists[iPlayListTotal];
+
+Integer iGroupSource;
+Integer iGroupCounts[5];
+
+/*******************************************************************************************
+  Global Variables
+*******************************************************************************************/
+
+Integer iSourceSupport[3];
+Integer iMusicSupport;
+Integer iRadioSupport;
+Integer iMovieSupport;
+Integer iCoverSupport;
+Integer iLimitMusicView;
+Integer iInitCount;
+
+Integer bUseStaticGuides;
+Integer iStaticGuideIndex;
+Integer iStaticListCount;
+Integer iStaticListIndex;
+Integer iGuideSource;
+Integer iGuideIndex;
+Integer iSelectedGuideIndex;
+
+Integer iPlayerSource;
+Integer iPlayMode;
+Integer iPlayState;
+String sPlayMode[5][15];
+String sPlayState[5][25];
+
+Integer iDialogType;
+Integer iGroupInfoType;
+Integer iTitleInfoType;
+Integer iCoverInfoType;
+Integer iTrackInfoType;
+Integer iKBInfoType;
+Integer iNoDataType;
+
+Integer iDBChangeType;
+Integer iPlayListIndex; 
+Integer iPlayListLoopIndex;
+Integer iJukeboxIndex;
+Integer iArtistCount;
+Integer iSongCount;
+
+String sKeyboard[iMaxDataLength];
+Integer iJBSelectedIndex;
+
+String sEscRx[32767];
+String sEscRxArray[500][iMaxDataLength];
+String sEscTxArray[10][1000];
+Integer iEscRxArrayCount;
+
+Integer iEscPending;
+String sLastEscTxData[1000];
+String sResendEscTxData[1000];
+String sNextEscTxData[1000];
+
+String sMovieCast[5000];
+String sMovieDescription[32767];
+String sMovieDescriptionArray[500][iMovieDescriptionLength];
+Integer iMovieDescriptionCount;
+Integer iMovieDetailsIndex;
+Integer iMovieDetailsCount;
+String sMovieDetailsDescriptionArray[500][iMovieDescriptionLength];
+String sNowPlayingMovieDescriptionArray[500][iMovieDescriptionLength];
+
+String sIconPad[8];
+String sFBName[32];
+
+/*******************************************************************************************
+  Functions                                                                                
+*******************************************************************************************/
+
+Function InitGuide()
+	{
+	Integer iLoop;
+
+	iKBInfoType = 0;
+	For (iLoop = 1 to iMaxListCount)
+		{
+		JBSelectFB[iLoop] = 1;
+		GuideDataIcon[iLoop] = 0;
+		GuideData$[iLoop] = "";
+		AltGuideData$[iLoop] = "";
+		GuideCoverURLs$[iLoop] = "";
+		If (iLoop < 5) MovieDetails$[iLoop] = "";
+		MovieDetailsData$[iLoop] = "";
+		}
+	iLoop = 0;
+	If (bUseStaticGuides = 0) iLoop = tGuideData[iGuideIndex].iView;
+	Switch (iLoop)
+		{
+		Case (0): //List
+			{
+			GuideMusicCoversFB = 0;
+			GuideMovieCoversSubFB = 0;
+			GuideMovieDetailsSubFB = 0;
+			GuideListSubFB = 1;
+			}
+		Case (1): // Music Covers
+			{
+			GuideListSubFB = 0;
+			GuideMovieCoversSubFB = 0;
+			GuideMovieDetailsSubFB = 0;
+			GuideMusicCoversFB = 1;
+			}
+		Case (2): // Movie Covers
+			{
+			GuideListSubFB = 0;
+			GuideMusicCoversFB = 0;
+			GuideMovieDetailsSubFB = 0;
+			GuideMovieCoversSubFB = 1;
+			}
+		Case (3): // Movie Details
+			{
+			GuideListSubFB = 0;
+			GuideMusicCoversFB = 0;
+			GuideMovieCoversSubFB = 0;
+			GuideMovieDetailsSubFB = 1;
+			}
+		}
+	}
+
+Function WaitMessageSub()
+	{
+	MessageSubFB = 1;
+	Wait (2000, MessageSub) MessageSubFB = 0;
+	}
+
+Function InitSystem()
+	{
+   bUseStaticGuides = 1;
+   iStaticGuideIndex = 0;
+	iStaticListIndex = 1;
+   iGuideSource = 1;
+   iPlayerSource = 0;
+	InitGuide();
+	GuideTitleIcon = 1;
+	GuideTitle$ = "";
+	AltGuideTitle$ = "";
+	Message$[1] = "Refreshing Guide Data!";
+	Message$[2] = "Getting System Info";
+	Message$[3] = "One Moment Please...";
+	CancelWait (MessageSub);
+	WaitMessageSub(); 
+	iDBChangeType= 0;
+	iGroupSource = 1;
+   iGroupInfoType = 0;
+   iPlayListIndex = 0;
+   tPlayLists[0].iCount = 0;
+	EscTx$ = "ESCX5007\r";
+	}
+
+Function InitPlayer()
+	{
+	Integer iLoop;
+	For (iLoop = 1 to iMaxListCount)
+		{
+		If (iLoop < 6) NowPlaying$[iLoop] = "";
+		PlayerData$[iLoop] = "";
+		}
+	Switch (iPlayerSource)
+		{
+		Case (1): 
+			{
+			PlayerRadioSubFB = 0;
+			PlayerMovieSubFB = 0;
+			PlayerMusicSubFB = 1;
+			}
+		Case (2): 
+			{
+			PlayerMusicSubFB = 0;
+			PlayerMovieSubFB = 0;
+			PlayerRadioSubFB = 1;
+			}
+		Case (3): 
+			{
+			PlayerMusicSubFB = 0;
+			PlayerRadioSubFB = 0;
+			PlayerMovieSubFB = 1;
+			}
+		}
+	}
+
+Function ShowPlayer()
+	{
+	Pulse (10, PlayerPageFB);
+	}
+
+Function SetSlideOut(Integer iSlideType, Integer iIndex, Integer iCount)
+	{
+	Integer iSlideValue;
+	
+	If ((iIndex < 2) || (iCount < iMaxListCount))
+		{
+		iSlideValue = iSlideMax;
+		}
+	Else If (iIndex + iMaxListCount >= iCount)
+		{
+		iSlideValue = iSlideMin;
+		}
+	Else
+		{
+		iSlideValue = iSlideMax - ((iIndex * iSlideMax) / iCount);		
+		}
+	If (iSlideType = 0) 
+		{
+		GuideSlideOut = iSlideValue;
+		}
+	Else
+		{
+		PlayerSlideOut = iSlideValue;
+		}
+	}
+	
+Function DisplayStaticGuideData()
+	{                  
+	Integer iLoop;
+	Integer iIconOffset;
+	
+	CancelWait(MessageSub);
+	MessageSubFB = 0;
+	If ((iStaticGuideIndex > 0) && (tMediaGroups[(iStaticGuideIndex - 1) * iMaxGroupCount].iCount = 0))
+		{                                                                                              
+		iStaticGuideIndex = 0;
+		Message$[1] = "There is no media of this type in your FireBall";
+		Message$[2] = "Add media and press the Continue button below to refresh the guide data.";
+		Message$[3] = "Press the Cancel button to close this message box.";
+		MessageKeyLabel$ = "Continue";
+		iDialogType = 5;
+		DialogSubFB = 1;
+		}
+
+	Switch(iStaticGuideIndex)
+		{
+		Case (0):
+			{
+			sGuideTitle = "Home";
+			iLoop = 0;
+			If (iMusicSupport = 1)
+				{
+				iSourceSupport[iLoop] = 1;
+				sGuideData[iLoop] = "Music";
+				GuideDataIcon[iLoop + 1] = 2;
+				iLoop = iLoop + 1;
+				}
+			If (iRadioSupport = 1)
+				{
+				iSourceSupport[iLoop] = 2;
+				sGuideData[iLoop] = "Radio";
+				GuideDataIcon[iLoop + 1] = 3;
+				iLoop = iLoop + 1;
+				}
+			If (iMovieSupport = 1)
+				{
+				iSourceSupport[iLoop] = 3;
+				sGuideData[iLoop] = "Movies";
+				GuideDataIcon[iLoop + 1] = 4;
+				iLoop = iLoop + 1;
+				}
+			iStaticListCount = iLoop;
+			}
+		Case (1): // Music
+			{
+			sGuideTitle = "Music";
+		   sGuideData[0] = "Artists";
+		   iGuideData[0] = 1;
+		   sGuideData[1] = "Albums";
+		   iGuideData[1] = 2;
+		   iStaticListCount = 2;
+		   If (iLimitMusicView = 0)
+		   	{ 
+			   sGuideData[iStaticListCount] = "Songs";
+			   iGuideData[iStaticListCount] = 3;
+			   iStaticListCount = iStaticListCount + 1;
+			   }
+		   sGuideData[iStaticListCount] = "Genres";
+		   iGuideData[iStaticListCount] = 4;
+		   iStaticListCount = iStaticListCount + 1;
+		   If (iPlayListIndex > 0)
+		   	{ 
+			   sGuideData[iStaticListCount] = "Playlists";
+			   iGuideData[iStaticListCount] = 5;
+			   iStaticListCount = iStaticListCount + 1;
+			   }
+			If (iCoverSupport = 1)
+				{
+			   sGuideData[iStaticListCount] = "Cover Art";
+			   iGuideData[iStaticListCount] = 6;
+			   iStaticListCount = iStaticListCount + 1;
+			   }
+			iIconOffset = 5;
+			}
+		Case (2): // Radio
+			{
+			sGuideTitle = "Radio";
+		   sGuideData[0] = "All Stations";
+		   sGuideData[1] = "By Genre";
+		   iStaticListCount = 2;
+			iIconOffset = 11;
+			}
+		Case (3): // Movies
+			{
+			sGuideTitle = "Movies";
+		   sGuideData[0] = "All Movies";
+		   sGuideData[1] = "By Genre";
+			If (iCoverSupport = 1)
+				{
+			   sGuideData[2] = "Cover Art";
+			   iStaticListCount = 3;
+			   }
+			Else
+				{
+			   iStaticListCount = 2;
+				}
+			iIconOffset = 13;
+			}
+		}
+	GuideTitleIcon = iStaticGuideIndex + 1;
+	GuideTitle$ = sIconPad + sGuideTitle;
+	AltGuideTitle$ = sGuideTitle;
+	For (iLoop = iStaticListCount to iMaxListCount - 1) sGuideData[iLoop] = "";
+	For (iLoop = 0 to iMaxListCount - 1)
+		{
+		JBSelectFB[iLoop + 1] = 1;
+		If ((iLoop + iStaticListIndex - 1) < iStaticListCount)
+			{
+			If (iStaticGuideIndex > 0) 
+				{
+				If (iStaticGuideIndex = 1)
+					{
+					GuideDataIcon[iLoop + 1] = iIconOffset + iGuideData[iLoop] - 1;
+					}
+				Else
+					{
+					GuideDataIcon[iLoop + 1] = iIconOffset + iLoop;
+					}
+				}
+			GuideData$[iLoop + 1] = sIconPad + sGuideData[iLoop + iStaticListIndex - 1];
+			AltGuideData$[iLoop + 1] = sGuideData[iLoop + iStaticListIndex - 1];
+			}
+		Else
+			{
+			GuideDataIcon[iLoop + 1] = 0;
+			GuideData$[iLoop + 1] = "";
+			AltGuideData$[iLoop + 1] = "";
+			}
+		}
+	SetSlideOut (0, iStaticListIndex, iStaticListCount);
+	}
+   
+Function GoHome()
+	{
+	iGuideIndex = 0;
+	bUseStaticGuides = 1;
+	iStaticGuideIndex = 0;
+	iStaticListIndex = 1;
+	iDBChangeType = 0;
+	InitGuide();
+	DisplayStaticGuideData();
+	}
+
+
+Function DisplayDynamicGuideData()
+	{
+	Integer iLoop;
+	
+	sGuideTitle = tGuideData[iGuideIndex].sTitle;
+	Print ("sGuideTitle%d = %s\n", iGuideIndex, sGuideTitle);
+   GuideTitle$ = sIconPad + sGuideTitle;
+   AltGuideTitle$ = sGuideTitle;
+	InitGuide();
+   For (iLoop = 0 To iMaxListCount - 1)
+   	{
+		If (tGuideData[iGuideIndex].iView = 0)
+			{
+      	If ((bUseStaticGuides = 0) && sGuideData[(iGuideIndex + 1) * iMaxListCount + iLoop] <> "")
+      		{
+      		If (iGuideSource = 1)
+      			{
+      			JBSelectFB[iLoop + 1] = 0;
+      			}
+      		Else
+      			{
+      			JBSelectFB[iLoop + 1] = 1;
+      			}
+      		GuideDataIcon[iLoop + 1] = tGuideData[iGuideIndex].iGuideDataIcon;
+      		}
+      	Else
+      		{
+      		JBSelectFB[iLoop + 1] = 1;
+      		GuideDataIcon[iLoop + 1] = 0;
+      		}
+	      GuideData$[iLoop + 1] = sIconPad + sGuideData[(iGuideIndex + 1) * iMaxListCount + iLoop];
+	      AltGuideData$[iLoop + 1] = sGuideData[(iGuideIndex + 1) * iMaxListCount + iLoop];
+			}
+		Else
+			{
+	      GuideCoverURLs$[iLoop + 1] = sGuideURLs[iLoop];
+			}
+      }
+	SetSlideOut (0, tGuideData[iGuideIndex].iIndex, tGuideData[iGuideIndex].iCount);
+	}
+
+Function UpdateMovieDetailsListData()
+	{
+	Integer iLoop;
+	Integer iTemp;
+
+   iTemp = iMovieDetailsIndex + iMaxListCount - 1;
+   If (iTemp > iMovieDetailsCount) iTemp = iMovieDetailsCount;
+   For (iLoop = 0 to iMaxListCount - 1)
+   	{
+   	If (iMovieDetailsIndex + iLoop <= iMovieDetailsCount)
+   		{              
+			MovieDetailsData$[iLoop + 1] = sMovieDetailsDescriptionArray[iMovieDetailsIndex + iLoop];
+			}
+		Else
+			{
+			MovieDetailsData$[iLoop + 1] = "";
+			}
+	   }
+	}
+	
+Function UpdatePlayerListData()
+	{
+	Integer iLoop;
+	Integer iTemp;
+   iTemp = tPlayerData.iIndex + iMaxListCount - 1;
+   If (iTemp > tPlayerData.iCount) iTemp = tPlayerData.iCount;
+	Switch (iPlayerSource)
+		{
+		Case (1): // Music
+			{
+		   iTrackInfoType = 1;
+		   Makestring(EscTx$,"ESCX20040050002%02d0004%04d0004%04d0004%04d0004%04d\r", tPlayerData.iGroupType, tPlayerData.iGroup, tPlayerData.iContainer, tPlayerData.iIndex, iTemp);
+		   SetSlideOut(1, tPlayerData.iIndex, tPlayerData.iCount);
+			}
+		Case (3): // Movie
+			{
+		   For (iLoop = 0 to iMaxListCount - 1)
+		   	{
+		   	If (tPlayerData.iIndex + iLoop <= tPlayerData.iCount)
+		   		{              
+					PlayerData$[iLoop + 1] = sNowPlayingMovieDescriptionArray[tPlayerData.iIndex + iLoop];
+					}
+				Else
+					{
+					PlayerData$[iLoop + 1] = "";
+					}
+			   }
+			}
+		}
+	}
+
+Function PlaytPlayerData(Integer iTemp)
+	{
+	Makestring(EscTx$,"ESCX20050040002%02d0004%04d0005%05d0005%05d\r", tPlayerData.iGroupType, tPlayerData.iGroup, tPlayerData.iContainer, tPlayerData.iIndex);
+	iCoverInfoType = 1;
+	Makestring(EscTx$,"ESCX20080040002%02d0004%04d0005%05d0005%05d\r", tPlayerData.iGroupType, tPlayerData.iGroup, tPlayerData.iContainer, tPlayerData.iContainer);
+	
+	InitPlayer();
+	ShowPlayer();
+	NowPlaying$[1]	= sGuideData[(iGuideIndex * iMaxListCount) + iSelectedGuideIndex - 1] + "";
+	
+	Switch (iTemp)
+		{
+		Case (1):
+			{
+			tPlayerData.iTag1[0] = tPlayerData.iIndex; //Use Tag1 to store the currentplaying track number.
+			tPlayerData.iIndex = 1;
+			UpdatePlayerListData();
+			}
+		Case (2): 
+			{
+			iTitleInfoType = 2;
+			Makestring(EscTx$,"ESCX20090040002%02d0004%04d0004%04d0004%04d\r", tPlayerData.iGroupType, tPlayerData.iGroup, tPlayerData.iContainer, tPlayerData.iContainer);
+			}
+		}
+   }
+
+Integer_Function SetGroupData()
+	{
+	Integer iTemp;
+	Integer iLoop;
+
+   If ((iGuideIndex > 0) && (iSelectedGuideIndex > 0))
+   	{
+      If (tGuideData[iGuideIndex - 1].iCommand = 1)
+      	{
+         tGuideData[iGuideIndex].iGroupType = ((iGuideSource - 1) * 2) + 1;
+         If (tGuideData[iGuideIndex - 1].iTag2[iSelectedGuideIndex - 1] > 0)
+         	{
+            tGuideData[iGuideIndex].iGroupType = tGuideData[iGuideIndex].iGroupType + 1;
+            }
+         tGuideData[iGuideIndex].iGroup = tGuideData[iGuideIndex - 1].iIndex + iSelectedGuideIndex - 1;
+         tGuideData[iGuideIndex].iGroup = tGuideData[iGuideIndex].iGroup - tGuideData[iGuideIndex - 1].iTag2[iSelectedGuideIndex - 1];
+         
+         For (iLoop = iGuideIndex + 1 To 3)
+         	{
+            tGuideData[iLoop].iGroupType = tGuideData[iGuideIndex].iGroupType;
+            tGuideData[iLoop].iGroup = tGuideData[iGuideIndex].iGroup;
+            }
+         tGuideData[iGuideIndex].iCount = tGuideData[iGuideIndex - 1].iTag1[iSelectedGuideIndex - 1];
+         iTemp = tGuideData[iGuideIndex].iIndex + iMaxListCount - 1;
+         If (iTemp > tGuideData[iGuideIndex].iCount) iTemp = tGuideData[iGuideIndex].iCount;
+			Return(iTemp);
+         }
+      }
+	Else
+		{
+      Return(0);
+		}
+	}
+
+Function FormatEscTxData()
+	{
+	Integer iTemp;
+	Integer iLoop;
+   
+   iTemp = tGuideData[iGuideIndex].iIndex + iMaxListCount - 1;
+   If (iTemp > tGuideData[iGuideIndex].iCount) iTemp = tGuideData[iGuideIndex].iCount;
+   Switch (tGuideData[iGuideIndex].iCommand)
+   	{
+      Case (1): // Media Groups
+      	{
+         For (iLoop = 0 To iMaxListCount - 1)
+         	{
+            If (tGuideData[iGuideIndex].iIndex + iLoop <= tGuideData[iGuideIndex].iCount)
+            	{
+               sGuideData[((iGuideIndex + 1) * iMaxListCount) + iLoop] = tMediaGroups[((iGuideSource - 1) * iMaxGroupCount) + tGuideData[iGuideIndex].iIndex + iLoop - 1].sName;
+               tGuideData[iGuideIndex].iTag1[iLoop] = tMediaGroups[((iGuideSource - 1) * iMaxGroupCount) + tGuideData[iGuideIndex].iIndex + iLoop - 1].iCount;
+               tGuideData[iGuideIndex].iTag2[iLoop] = tMediaGroups[((iGuideSource - 1) * iMaxGroupCount) + tGuideData[iGuideIndex].iIndex + iLoop - 1].iOffSet;
+					If (iGuideSource = 1) JBSelectFB[iLoop + 1] = 0;
+					GuideDataIcon[iLoop + 1] =  tGuideData[iGuideIndex].iGuideDataIcon;
+               GuideData$[iLoop + 1] = sIconPad + tMediaGroups[((iGuideSource - 1) * iMaxGroupCount) + tGuideData[iGuideIndex].iIndex + iLoop - 1].sName;
+               AltGuideData$[iLoop + 1] = tMediaGroups[((iGuideSource - 1) * iMaxGroupCount) + tGuideData[iGuideIndex].iIndex + iLoop - 1].sName;
+               }
+            Else
+            	{
+               sGuideData[((iGuideIndex + 1) * iMaxListCount) + iLoop] = "";
+               tGuideData[iGuideIndex].iTag1[iLoop] = 0;
+               tGuideData[iGuideIndex].iTag2[iLoop] = 0;
+					JBSelectFB[iLoop + 1] = 1;
+					GuideDataIcon[iLoop + 1] = 0;
+               GuideData$[iLoop + 1] = "";
+               AltGuideData$[iLoop + 1] = "";
+               }
+            }
+         }
+
+      Case (2): // Get Movie Details
+      	{
+         tGuideData[iGuideIndex].iGroupType = tGuideData[iGuideIndex - 1].iGroupType;
+         tGuideData[iGuideIndex].iGroup = tGuideData[iGuideIndex - 1].iGroup;
+			tGuideData[iGuideIndex].iContainer = tGuideData[iGuideIndex - 1].iIndex + iSelectedGuideIndex - 1;
+			tGuideData[iGuideIndex].iIndex = tGuideData[iGuideIndex].iContainer;
+			sGuideData[((iGuideIndex + 1) * iMaxListCount)] = sGuideData[(iGuideIndex * iMaxListCount) + iSelectedGuideIndex - 1];
+			MovieDetails$[1] = sGuideData[(iGuideIndex * iMaxListCount) + iSelectedGuideIndex - 1];
+         iCoverInfoType = 2;
+         Makestring(EscTx$,"ESCX20080040002%02d0004%04d0004%04d0004%04d\r", tGuideData[iGuideIndex].iGroupType, tGuideData[iGuideIndex].iGroup, tGuideData[iGuideIndex].iContainer, tGuideData[iGuideIndex].iContainer);
+         iTitleInfoType = 1;
+         Makestring(EscTx$,"ESCX20090040002%02d0004%04d0004%04d0004%04d\r", tGuideData[iGuideIndex].iGroupType, tGuideData[iGuideIndex].iGroup, tGuideData[iGuideIndex].iContainer, tGuideData[iGuideIndex].iContainer);
+			}
+
+      Case (3): // Cached PlayList Data
+      	{
+         For (iLoop = 0 To iMaxListCount - 1)
+         	{
+            If (tGuideData[iGuideIndex].iIndex + iLoop <= tGuideData[iGuideIndex].iCount)
+            	{
+               sGuideData[((iGuideIndex + 1) * iMaxListCount) + iLoop] = tPlayLists[tGuideData[iGuideIndex].iIndex + iLoop - 1].sName;
+               tGuideData[iGuideIndex].iTag1[iLoop] = tPlayLists[tGuideData[iGuideIndex].iIndex + iLoop - 1].iCount;
+					If (iGuideSource = 1) JBSelectFB[iLoop + 1] = 0;
+					GuideDataIcon[iLoop + 1] =  tGuideData[iGuideIndex].iGuideDataIcon;
+               GuideData$[iLoop + 1] = sIconPad + tPlayLists[tGuideData[iGuideIndex].iIndex + iLoop - 1].sName;
+               AltGuideData$[iLoop + 1] = tPlayLists[tGuideData[iGuideIndex].iIndex + iLoop - 1].sName;
+               }
+            Else
+            	{
+               sGuideData[((iGuideIndex + 1) * iMaxListCount) + iLoop] = "";
+               tGuideData[iGuideIndex].iTag1[iLoop] = 0;
+               tGuideData[iGuideIndex].iTag2[iLoop] = 0;
+					JBSelectFB[iLoop + 1] = 1;
+					GuideDataIcon[iLoop + 1] = 0;
+               GuideData$[iLoop + 1] = "";
+               AltGuideData$[iLoop + 1] = "";
+               }
+            }
+         }
+         
+      Case (2003): // Get Artist / Title Data
+      	{
+			iLoop = SetGroupData();
+			If (iLoop > 0) iTemp = iLoop;
+         iTitleInfoType = 0;
+         Makestring(EscTx$,"ESCX20030040002%02d0004%04d0005%05d0005%05d\r", tGuideData[iGuideIndex].iGroupType, tGuideData[iGuideIndex].iGroup, tGuideData[iGuideIndex].iIndex, iTemp);
+         }
+
+      Case (2009): // Get Music Cover URL Data
+      	{
+			iLoop = SetGroupData();
+			If (iLoop > 0) iTemp = iLoop;
+         iTitleInfoType = 0;
+         Makestring(EscTx$,"ESCX20090050002%02d0004%04d0004%04d0004%04d0002%02d\r", tGuideData[iGuideIndex].iGroupType, tGuideData[iGuideIndex].iGroup, tGuideData[iGuideIndex].iIndex, iTemp, 1);
+         }
+
+      Case (2008): // Get Movie Cover URL Data
+      	{
+			iLoop = SetGroupData();
+			If (iLoop > 0) iTemp = iLoop;
+         iCoverInfoType = 0;
+         Makestring(EscTx$,"ESCX20080040002%02d0004%04d0004%04d0004%04d\r", tGuideData[iGuideIndex].iGroupType, tGuideData[iGuideIndex].iGroup, tGuideData[iGuideIndex].iIndex, iTemp);
+			iTitleInfoType = 0;
+			Makestring(sNextEscTxData,"ESCX20030040002%02d0004%04d0004%04d0004%04d\r", tGuideData[iGuideIndex].iGroupType, tGuideData[iGuideIndex].iGroup, tGuideData[iGuideIndex].iIndex, iTemp);
+         }
+         
+      Case (2004): // Get Track Data
+      	{
+         If (iSelectedGuideIndex > 0)
+         	{
+	         If (tGuideData[iGuideIndex - 1].iCommand = 2018)
+	         	{
+	            tGuideData[iGuideIndex].iContainer = tGuideData[iGuideIndex - 1].iTag2[iSelectedGuideIndex - 1];
+	            }
+	         Else
+	         	{
+	            tGuideData[iGuideIndex].iContainer = tGuideData[iGuideIndex - 1].iIndex + iSelectedGuideIndex - 1;
+	            }
+	         tGuideData[iGuideIndex].iCount = tGuideData[iGuideIndex - 1].iTag1[iSelectedGuideIndex - 1];
+	       	}
+	      iTemp = tGuideData[iGuideIndex].iIndex + iMaxListCount - 1;
+         If (iTemp > tGuideData[iGuideIndex].iCount) iTemp = tGuideData[iGuideIndex].iCount;
+         iTrackInfoType = 0;
+         Makestring(EscTx$,"ESCX20040050002%02d0004%04d0004%04d0004%04d0004%04d\r", tGuideData[iGuideIndex].iGroupType, tGuideData[iGuideIndex].iGroup, tGuideData[iGuideIndex].iContainer, tGuideData[iGuideIndex].iIndex, iTemp);
+         }
+     
+      Case (2018): //Get Artist's Title Data
+      	{
+         If (iSelectedGuideIndex > 0)
+         	{
+	         tGuideData[iGuideIndex].iContainer = tGuideData[iGuideIndex - 1].iIndex + iSelectedGuideIndex - 1;
+	         tGuideData[iGuideIndex].iCount = tGuideData[iGuideIndex - 1].iTag1[iSelectedGuideIndex - 1];
+	        	}
+         iTemp = tGuideData[iGuideIndex].iIndex + iMaxListCount - 1;
+         If (iTemp > tGuideData[iGuideIndex].iCount) iTemp = tGuideData[iGuideIndex].iCount;
+			iTitleInfoType = 0;
+         Makestring(EscTx$,"ESCX20180050002%02d0004%04d0004%04d0004%04d0004%04d\r", tGuideData[iGuideIndex].iGroupType, tGuideData[iGuideIndex].iGroup, tGuideData[iGuideIndex].iContainer, tGuideData[iGuideIndex].iIndex, iTemp);
+         }
+
+      Case (2005): // Play Media
+      	{
+         tGuideData[iGuideIndex].iGroupType = tGuideData[iGuideIndex - 1].iGroupType;
+         tGuideData[iGuideIndex].iGroup = tGuideData[iGuideIndex - 1].iGroup;
+         Switch (tGuideData[iGuideIndex].iGroupType)
+         	{
+            Case (3): iTemp = 0;
+            Case (4): iTemp = 0;
+            Case (5): iTemp = 2;
+            Case (6): iTemp = 2;
+            Case (91): iTemp = 0;
+            Case (92): iTemp = 0;
+            Default: iTemp = 1;
+            }
+         If (iTemp = 1)
+				{
+				tGuideData[iGuideIndex].iContainer = tGuideData[iGuideIndex - 1].iContainer;
+				tGuideData[iGuideIndex].iIndex = tGuideData[iGuideIndex - 1].iIndex + iSelectedGuideIndex - 1;
+				}
+			Else
+				{
+				tGuideData[iGuideIndex].iContainer = tGuideData[iGuideIndex - 1].iIndex + iSelectedGuideIndex - 1;
+				tGuideData[iGuideIndex].iIndex = 1;
+				}
+            
+         iPlayerSource = iGuideSource;
+         tPlayerData.iCommand = tGuideData[iGuideIndex].iCommand;
+         tPlayerData.iGroupType = tGuideData[iGuideIndex].iGroupType;
+         tPlayerData.iGroup = tGuideData[iGuideIndex].iGroup;
+         tPlayerData.iContainer = tGuideData[iGuideIndex].iContainer;
+         tPlayerData.iCount = tGuideData[iGuideIndex - 1].iCount;
+         tPlayerData.iIndex = tGuideData[iGuideIndex].iIndex;
+         
+         PlaytPlayerData(iTemp);
+
+         iGuideIndex = iGuideIndex - 1;
+         }
+      }
+		SetSlideOut (0, tGuideData[iGuideIndex].iIndex, tGuideData[iGuideIndex].iCount);
+	}
+
+Function GuideSelector(Integer Index)
+	{
+	Integer iTemp ;
+	String sTemp[iMaxDataLength];
+
+	If (sGuideData[((iGuideIndex + 1 - bUseStaticGuides) * iMaxListCount) + Index - 1]	<> "")
+		{
+		If (bUseStaticGuides = 1)
+			{                  
+			Index = Index + iStaticListIndex - 1;
+			If (iStaticGuideIndex > 0)
+				{
+				sGuideTitle = sGuideTitle + " > " + sGuideData[Index - 1];
+  				tGuideData[iGuideIndex].sTitle = sGuideTitle;
+				GuideTitle$ = sIconPad + sGuideTitle;
+				AltGuideTitle$ = sGuideTitle;
+				For (iTemp = 0 to 3) tGuideData[iTemp].iView = 0;
+				}
+			Switch (iStaticGuideIndex)
+				{ 
+				Case (0): // Home
+					{
+					iGuideSource = iSourceSupport[Index - 1];
+					iStaticGuideIndex = iGuideSource;
+					DisplayStaticGuideData();
+					}
+				Case (1): // Music
+					{
+					bUseStaticGuides = 0;
+					Switch (iGuideData[Index - 1])
+						{
+						Case (1): // Artists
+							{
+							If (iLimitMusicView = 0)
+								{
+								tGuideData[0].iCommand = 2003;
+								tGuideData[0].iGroupType = 71;
+								tGuideData[0].iGroup = 1;
+								tGuideData[0].iIndex = 1;
+								tGuideData[0].iCount = iArtistCount;
+								tGuideData[0].iGuideDataIcon = 5;
+	
+								tGuideData[1].iCommand = 2018;
+								tGuideData[1].iGroupType = 71;
+								tGuideData[1].iGroup = 1;
+								tGuideData[1].iIndex = 1;
+								tGuideData[1].iGuideDataIcon = 6;
+								
+								tGuideData[2].iCommand = 2004;
+								tGuideData[2].iGroupType = 1;
+								tGuideData[2].iGroup = 1;
+								tGuideData[2].iIndex = 1;
+								tGuideData[2].iGuideDataIcon = 7;
+								
+								tGuideData[3].iCommand = 2005;
+								tGuideData[3].iGroupType = 1;
+								tGuideData[3].iGroup = 1;
+								}
+							Else
+								{
+								tGuideData[0].iCommand = 2003;
+								tGuideData[0].iGroupType = 1;
+								tGuideData[0].iGroup = 1;
+								tGuideData[0].iIndex = 1;
+								tGuideData[0].iCount = tMediaGroups[(iGuideSource - 1) * iMaxGroupCount].iCount;
+								tGuideData[0].iGuideDataIcon = 5;
+	
+								tGuideData[1].iCommand = 2004;
+								tGuideData[1].iGroupType = 1;
+								tGuideData[1].iGroup = 1;
+								tGuideData[1].iIndex = 1;
+								tGuideData[1].iGuideDataIcon = 7;
+								
+								tGuideData[2].iCommand = 2005;
+								tGuideData[2].iGroupType = 1;
+								tGuideData[2].iGroup = 1;
+								}
+							}
+						Case (2): // Albums
+							{
+							tGuideData[0].iCommand = 2003;
+							tGuideData[0].iGroupType = 81;
+							tGuideData[0].iGroup = 1;
+							tGuideData[0].iIndex = 1;
+							tGuideData[0].iCount = tMediaGroups[(iGuideSource - 1) * iMaxGroupCount].iCount;
+							tGuideData[0].iGuideDataIcon = 6;
+							
+							tGuideData[1].iCommand = 2004;
+							tGuideData[1].iGroupType = 81;
+							tGuideData[1].iGroup = 1;
+							tGuideData[1].iIndex = 1;
+							tGuideData[1].iGuideDataIcon = 7;
+							
+							tGuideData[2].iCommand = 2005;
+							tGuideData[2].iGroupType = 81;
+							tGuideData[2].iGroup = 1;
+							}
+						Case (3): // Songs
+							{
+							tGuideData[0].iCommand = 2003;
+							tGuideData[0].iGroupType = 91;
+							tGuideData[0].iGroup = 1;
+							tGuideData[0].iIndex = 1;
+							tGuideData[0].iCount = iSongCount;
+							tGuideData[0].iGuideDataIcon = 7;
+							
+							tGuideData[1].iCommand = 2005;
+							tGuideData[1].iGroupType = 91;
+							tGuideData[1].iGroup = 1;
+							}
+						Case (4): // Genres
+							{
+							tGuideData[0].iCommand = 1;
+							tGuideData[0].iIndex = 1;
+							tGuideData[0].iCount = iGroupCounts[0] + iGroupCounts[1];
+							tGuideData[0].iGuideDataIcon = 8;
+							
+							tGuideData[1].iCommand = 2003;
+							tGuideData[1].iIndex = 1;
+							tGuideData[1].iGuideDataIcon = 6;
+							
+							tGuideData[2].iCommand = 2004;
+							tGuideData[2].iIndex = 1;
+							tGuideData[2].iGuideDataIcon = 7;
+							
+							tGuideData[3].iCommand = 2005;
+							}
+						Case (5): // Playlists
+							{
+							If (iPlayListIndex = 0)
+								{
+								InitGuide();
+								}
+							If (iCachePlayListData = 0)
+								{
+								tGuideData[0].iCommand = 2003;
+								}
+							Else
+								{
+								tGuideData[0].iCommand = 3;
+								}
+							tGuideData[0].iGroupType = 1;
+							tGuideData[0].iGroup = iPlayListIndex;
+							tGuideData[0].iCount = tMediaGroups[iPlayListIndex - 1].iCount;
+							tGuideData[0].iIndex = 1;
+							tGuideData[0].iGuideDataIcon = 9;
+							
+							tGuideData[1].iCommand = 2004;
+							tGuideData[1].iGroupType = 1;
+							tGuideData[1].iGroup = iPlayListIndex;
+							tGuideData[1].iIndex = 1;
+							tGuideData[1].iGuideDataIcon = 7;
+							
+							tGuideData[2].iCommand = 2005;
+							tGuideData[2].iGroupType = 1;
+							tGuideData[2].iGroup = iPlayListIndex;
+							}
+						Case (6): // Covers
+							{
+							tGuideData[0].iCommand = 1;
+							tGuideData[0].iIndex = 1;
+							tGuideData[0].iCount = iGroupCounts[0] + iGroupCounts[1];
+							tGuideData[0].iGuideDataIcon = 8;
+						
+							tGuideData[1].iCommand = 2009;
+							tGuideData[1].iView = 1;
+							tGuideData[1].iIndex = 1;
+							tGuideData[1].iGuideDataIcon = 10;
+
+							
+							tGuideData[2].iCommand = 2004;
+							tGuideData[2].iIndex = 1;
+							tGuideData[2].iGuideDataIcon = 7;
+							
+							tGuideData[3].iCommand = 2005;
+							}
+						}
+						iGuideIndex = 0;
+						FormatEscTxData();
+					}
+				Case (2): // Radio
+					{
+					bUseStaticGuides = 0;
+					Switch (Index)
+						{
+						Case (1): // Stations
+							{
+							tGuideData[0].iCommand = 2003;
+							tGuideData[0].iGroupType = 3;
+							tGuideData[0].iGroup = 1;
+							tGuideData[0].iIndex = 1;
+							tGuideData[0].iCount = tMediaGroups[(iGuideSource - 1) * iMaxGroupCount].iCount;
+							tGuideData[0].iGuideDataIcon = 11;
+							
+							tGuideData[1].iCommand = 2005;
+							tGuideData[1].iGroupType = 3;
+							tGuideData[1].iGroup = 1;
+							}
+						Case (2): // Genres
+							{
+							tGuideData[0].iCommand = 1;
+							tGuideData[0].iIndex = 1;
+							tGuideData[0].iCount = iGroupCounts[2] + iGroupCounts[3];
+							tGuideData[0].iGuideDataIcon = 12;
+							
+							tGuideData[1].iCommand = 2003;
+							tGuideData[1].iIndex = 1;
+							tGuideData[1].iGuideDataIcon = 11;
+							
+							tGuideData[2].iCommand = 2005;
+							tGuideData[2].iIndex = 1;
+							}
+						}
+						iGuideIndex = 0;
+						FormatEscTxData();
+					}
+				Case (3): // Movies
+					{
+					bUseStaticGuides = 0;
+					Switch (Index)
+						{
+						Case (1): // Movies
+							{
+							tGuideData[0].iCommand = 2003;
+							tGuideData[0].iGroupType = 5;
+							tGuideData[0].iGroup = 1;
+							tGuideData[0].iIndex = 1;
+							tGuideData[0].iCount = tMediaGroups[(iGuideSource - 1) * iMaxGroupCount].iCount;
+							tGuideData[0].iGuideDataIcon = 13;
+							
+							tGuideData[1].iCommand = 2;
+							tGuideData[1].iView = 3;
+
+							tGuideData[2].iCommand = 2005;
+							tGuideData[2].iGroupType = 5;
+							tGuideData[2].iGroup = 1;
+							}
+						Case (2): // Genres
+							{
+							tGuideData[0].iCommand = 1;
+							tGuideData[0].iIndex = 1;
+							tGuideData[0].iCount = iGroupCounts[4] + iGroupCounts[5];
+							tGuideData[0].iGuideDataIcon = 14;
+							
+							tGuideData[1].iCommand = 2003;
+							tGuideData[1].iIndex = 1;
+							tGuideData[1].iGuideDataIcon = 13;
+							
+							tGuideData[2].iCommand = 2;
+							tGuideData[2].iView = 3;
+
+							tGuideData[3].iCommand = 2005;
+							tGuideData[3].iIndex = 1;
+							}
+						Case (3): // Covers
+							{
+							tGuideData[0].iCommand = 1;
+							tGuideData[0].iIndex = 1;
+							tGuideData[0].iCount = iGroupCounts[4] + iGroupCounts[5];
+							tGuideData[0].iGuideDataIcon = 14;
+							
+							tGuideData[1].iCommand = 2008;
+							tGuideData[1].iView = 2;
+							tGuideData[1].iIndex = 1;
+							tGuideData[1].iGuideDataIcon = 15;
+							
+							tGuideData[2].iCommand = 2;
+							tGuideData[2].iView = 3;
+
+							tGuideData[3].iCommand = 2005;
+							tGuideData[3].iIndex = 1;
+							}
+						}
+						iGuideIndex = 0;
+						FormatEscTxData();
+					}
+				}
+			}
+		Else
+			{
+			If (tGuideData[iGuideIndex + 1].iCommand <> 2005)
+				{
+				tGuideData[iGuideIndex].sTitle = sGuideTitle;
+				sTemp = Mid(sGuideTitle, ReverseFind( " > ", sGuideTitle) + 3, iMaxDataLength);
+				sGuideTitle = sTemp + " > " + sGuideData[(iGuideIndex + 1) * iMaxListCount + Index - 1];
+				GuideTitle$ = sIconPad + sGuideTitle;
+				tGuideData[iGuideIndex + 1].sTitle = sGuideTitle;
+				AltGuideTitle$ = sGuideTitle;
+				}
+			iSelectedGuideIndex = Index;
+			iGuideIndex = iGuideIndex + 1;
+			tGuideData[iGuideIndex].iIndex = 1;
+			If (tGuideData[iGuideIndex].iCommand <> 2005) InitGuide();
+			FormatEscTxData();
+			}
+		}
+	}
+
+Function MusicOptionsSelector(Integer iTemp)
+	{
+	Switch (iTemp)
+		{
+		Case (1): //Play Jukebox Queue
+			{
+			EscTx$ = "ESCX1061\r";  // Select Music Mode
+			EscTx$ = "ESCX1068\r";  // Play Queue
+			ShowPlayer();
+			}
+		Case (2): //Clear Jukebox Queue
+			{
+			If (Right(tPlayerData.sTitle, 9) = "- Jukebox") InitPlayer();
+			EscTx$ = "ESCX201200100040000\r"; // Delete Queue
+			iInitCount = 0;
+			iDBChangeType= 1;
+			Message$[1] = "Clearing Jukebox Queue!";
+			Message$[2] = "The Jukebox queue is being cleared.";
+			Message$[3] = "One Moment Please...";
+			CancelWait (MessageSub);
+			WaitMessageSub();
+			}
+		Case (3): //Save Queue as Playlist
+			{
+			sKeyboard = "";
+			Keyboard$ = "";
+			KeyboardLabel$ = "Playlist Name:";
+			KeyboardKeyLabel$ = "Save";
+			iKBInfoType = 2;
+			GuideKeyboardSubFB = 1;
+			}
+		Case (4): EscConnect = 0; //Refresh Connection and Guide Data
+		}
+	}
+
+String_Function Unicode(String sTemp) //UNICODE (UTF-8) Conversion - Extended ASCII Support Only
+	{
+	Integer iLoop;
+	Integer iTemp;
+	
+	iLoop = 1;
+	While (iLoop <= Len(sTemp))
+		{
+		If (Byte(sTemp, iLoop) > 128) 
+			{
+			iTemp = ((Byte(sTemp, iLoop) - 192) * 64) + (Byte(sTemp, iLoop + 1) - 128);
+			sTemp = Left(sTemp, iLoop - 1) + Chr(iTemp) + Mid(sTemp, iLoop + 2, Len(sTemp) - (iLoop + 1));
+			}
+		iLoop = iLoop + 1;
+		}
+	Return(sTemp);
+	}
+
+String_Function FixTheA(String sTemp)
+	{
+	If (Right(sTemp, 5) = ", The")
+		{
+		sTemp = "The " + Left(sTemp, Len(sTemp) - 5);
+		}
+	If (Right(sTemp, 3) = ", A")
+		{
+		sTemp = "A " + Left(sTemp, Len(sTemp) - 3);
+		}
+	Return(sTemp);
+	}
+
+String_Function FixArtistTitle(String sTemp)
+	{                 
+	Integer iTemp;
+	String sTemp1[iMaxDataLength];
+	
+	iTemp = Find(" - ", sTemp);
+	If (iTemp > 0)
+		{
+		sTemp1 = Mid(sTemp, iTemp + 3, iMaxDataLength);
+		sTemp1 = FixTheA(sTemp1);
+		sTemp = Left(sTemp, iTemp -1);
+		sTemp = FixTheA(sTemp);
+		sTemp = sTemp + " - " + sTemp1;
+		}
+	Else
+		{
+		sTemp = FixTheA(sTemp);
+		}
+	Unicode(sTemp);
+	Return(sTemp);
+	}
+
+String_Function EscapeSpaces(String sTemp)
+	{                 
+	Integer iTemp;
+
+	iTemp = Find(" ", sTemp);
+	While (iTemp > 0)
+		{
+		sTemp = Left(sTemp, iTemp - 1) + "%20" + Mid(sTemp, iTemp + 1, Len(sTemp));
+		iTemp = Find(" ", sTemp);
+		}
+	Return(sTemp);
+	}
+
+Function FillMovieDescriptionArray()
+	{
+	Integer iLoop, j, iPointer, iMarker, iLength;
+	String sTemp[32767], sTemp1[iMovieDescriptionLength];
+
+	iPointer = 1;
+	iMarker = iMovieDescriptionLength;
+	iLength = Len(sMovieDescription);
+	SetArray(sMovieDescriptionArray, "");
+
+	iLoop = 1;
+	//All this is for breaking the Movie Description at spaces prior to iMovieDescriptionLength 
+	While ((iPointer + iMarker < iLength) && (iLoop < 500))
+		{
+		sTemp = "x";
+		j = 0;
+		While ((sTemp <> " ") && (sTemp <> Chr(10)) && (sTemp <> Chr(13)) && (j < iMarker) && (iPointer + j < iLength))
+			{
+			j = j + 1;
+			sTemp = Mid(sMovieDescription, iPointer + iMarker - j, 1);
+			}
+		sTemp = Mid(sMovieDescription, iPointer, iMarker - j);
+		iPointer = iPointer + iMarker - j + 1;
+		//Handle Carriage Returns and Linefeeds:
+		For (j = 1 to j <= Len(sTemp))
+			{
+			//Insert blank lines for Linefeeds:
+			If (Mid(sTemp, j, 1) = Chr(10))
+				{
+				If (j = 1) 
+					{
+					sMovieDescriptionArray[iLoop] = "";
+					iLoop = iLoop + 1;
+					}
+				Else
+					{
+					sMovieDescriptionArray[iLoop] = Left(sTemp, j - 1);
+					iLoop = iLoop + 1;
+					}
+				iPointer = iPointer - (Len(sTemp) - j);
+				j = Len(sTemp);
+				sTemp = "";
+				}
+			//Drop Carriage Returns:
+			Else If (Mid(sTemp, j, 1) = Chr(13))
+				{
+				sTemp = Left(sTemp, j - 1) + Mid(sTemp, j + 1, Len(sTemp) - j);
+				j = 0;
+				}
+			}
+			sMovieDescriptionArray[iLoop] = sTemp;
+			iLoop = iLoop + 1;
+		}
+		sMovieDescriptionArray[iLoop] = Mid(sMovieDescription, iPointer, iLength - iPointer + 1);
+		iLoop = iLoop + 1;
+		sMovieDescriptionArray[iLoop] = "";     
+		iLoop = iLoop + 1;
+		sMovieDescriptionArray[iLoop] = "Cast:";
+		iLoop = iLoop + 1;
+		sTemp = sMovieCast;
+		iPointer = Find(", ", sTemp); 
+		While (iPointer > 0)
+			{
+			sTemp1 = Left(sTemp, iPointer - 1);
+			sTemp = Mid(sTemp, iPointer + 2, Len(sTemp));
+			If (Find(sTemp1, ".") > 0)
+				{
+				sMovieDescriptionArray[iLoop - 1] = sMovieDescriptionArray[iLoop - 1] + sTemp1;
+				}
+			Else
+				{
+				sMovieDescriptionArray[iLoop] = sTemp1;
+				iLoop = iLoop + 1;
+				}
+			iPointer = Find(", ", sTemp); 
+			}
+		sMovieDescriptionArray[iLoop] = sTemp;
+		iLoop = iLoop + 1;
+		sMovieDescriptionArray[iLoop] = "****************************";
+		iMovieDescriptionCount = iLoop;
+	}
+
+Function GetCachePlaylistData()
+	{
+	Integer iTemp;
+	If (iPlayListLoopIndex + iPlaylistLoopCount > tMediaGroups[iPlayListIndex - 1].iCount)
+		{
+		iTemp = tMediaGroups[iPlayListIndex - 1].iCount;
+		}
+	Else
+		{
+		iTemp = iPlayListLoopIndex + iPlaylistLoopCount - 1;
+		}
+	iTitleInfoType = 2;
+	Makestring(Message$[2],"Getting PlayLists: %u to %u of %u", iPlayListLoopIndex, iTemp, tMediaGroups[iPlayListIndex - 1].iCount);
+	Makestring(EscTx$,"ESCX20030040002%02d0004%04d0005%05d0005%05d\r", 1, iPlayListIndex, iPlayListLoopIndex, iTemp);
+   }
+
+Function CachePlayListData()
+	{
+	Message$[1] = "Refreshing Guide Data!";
+	Message$[3] = "One Moment Please...";
+	CancelWait (MessageSub);
+	WaitMessageSub(); 
+	iPlayListLoopIndex = 1;
+	iJukeboxIndex = 0;
+	GetCachePlaylistData();	
+	}
+	
+Function GetNextGroupData()
+	{
+	iGroupSource = iGroupSource + 1;
+	If ((iGroupSource = 3) && (iMovieSupport = 0) || (iGroupSource > 3))
+		{
+		If ((iCachePlayListData = 1) && (iPlaylistIndex > 0) && (tPlayLists[0].iCount = 0))  //Get the PlayList Cache Data...
+			{
+			CachePlayListData();
+			}
+		Else
+			{
+			iGroupInfoType = 0;
+			iGroupSource = 1;
+			DisplayStaticGuideData();
+			EscTx$ = "ESCX5002\r";
+			EscTx$ = "ESCX5004\r";
+			}
+		}
+	Else
+		{
+		iGroupInfoType = 0;
+		Makestring(EscTx$,"ESCX20010010002%02d\r", ((iGroupSource - 1) * 2) + 1); // Get number of items in the system group
+		}
+	}
+
+Function ParseEscRxData()
+	{
+	Integer iLoop;
+	Integer iCommand;
+	Integer iDataLength;
+	Integer iDataPointer;
+	
+	SetArray(sEscRxArray, "");
+	iCommand = atoi(Mid(sEscRx, 5, 4));
+	iEscRxArrayCount = atoi(Mid(sEscRx, 9, 3));
+	iDataPointer = 9 + 3;
+	For (iLoop = 0 To iEscRxArrayCount - 1)
+		{
+		iDataLength = atoi(Mid(sEscRx, iDataPointer, 4));
+		iDataPointer = iDataPointer + 4;
+		If (iDataLength > iMaxDataLength)
+			{
+			sEscRxArray[iLoop] = Mid(sEscRx, iDataPointer, iMaxDataLength);
+			}
+		Else
+			{
+			sEscRxArray[iLoop] = Mid(sEscRx, iDataPointer, iDataLength);
+			}
+		sEscRxArray[iLoop] = FixArtistTitle(sEscRxArray[iLoop]);
+		If  (iCommand = 2009) // Handle long strings for movie cast and descriptions
+			{
+			Switch (iLoop)
+				{
+				Case (2): sMovieCast = Mid(sEscRx, iDataPointer, iDataLength);
+				Case (3): sMovieDescription = Mid(sEscRx, iDataPointer, iDataLength);
+				}
+			}
+		iDataPointer = iDataPointer + iDataLength;
+		}
+	}
+
+Function ProcessEscRxData()
+	{
+	Integer iComGrp;
+	Integer iSubCom;
+	Integer iTemp;
+	Integer iTemp2;
+	Integer iLoop;
+   
+   iComGrp = atoi(Mid(sEscRx, 5, 2));
+   iSubCom = atoi(Mid(sEscRx, 7, 2));
+   ParseEscRxData();
+   
+   Switch (iComGrp)
+   	{
+		Case (1): // Command Acks
+			{
+      	iTemp = 0;
+      	Switch (iSubCom)
+    	   	{
+            Case (1): // Response#01 - OK...
+            	{
+            	}
+            Case (2): iTemp = 1;
+            Case (3): If (iGroupInfoType = 4) InitSystem();
+            Case (4): iTemp = 1;
+            Case (5): iTemp = 1;
+            Case (6): iTemp = 1;
+            Case (7): // Response#07 - Command Not Available during Power Standby...
+            	{
+            	}
+            Case (8): // Response#08 - Requested Data Is Not Available...
+            	{
+            	Switch (iNoDataType)
+            		{
+            		Case (0): //Keyboard Search
+            			{
+							If (Len(sKeyboard) = 1)
+								{
+		                  iLoop = Byte(sKeyboard, 1);
+								If (iLoop > 90) iLoop = iLoop - 32; // Set to upper case
+								iLoop = iLoop + 1;
+								If (iLoop > 90) //Stop after Z.  Set iLoop = 65; to wrap from A to Z
+									{
+									SearchNoMatchFB = 1;
+									Wait (150) SearchNoMatchFB = 0;	
+									}
+								Else
+									{
+									sKeyboard = Chr(iLoop);
+									Keyboard$ = sKeyboard;
+									Makestring(EscTx$,"ESCX20070030002%02d0004%04d%04d%s\r", tGuideData[iGuideIndex].iGroupType, tGuideData[iGuideIndex].iGroup, 1, sKeyboard);
+									}
+								}
+							Else
+								{
+								SearchNoMatchFB = 1;
+								Wait (150) SearchNoMatchFB = 0;	
+								}
+							}
+						Case (1): //Save As PlayList but No Jukebox Queue
+							{
+							MessageSubFB = 0;
+							CancelWait (MessageSub);
+							Message$[1] = "Jukebox Queue is Empty!";
+							Message$[2] = "Please add items to the Jukebox Queue before saving as playlist.";
+							Message$[3] = "Press the Continue or Cancel button to close this message box.";
+							MessageKeyLabel$ = "Continue";
+							iDialogType = 0;
+							DialogSubFB = 1;
+							}
+						}
+					}
+            Case (9): // Response#09 - External Control Command Is Not Yet Implemented...
+            	{
+            	}
+            Case (10): // Response#10 - Not Available at This Time...
+            	{
+					sResendEscTxData = sLastEscTxData;
+					Message$[1] = "Operation Cannot Be Completed Because your FireBall is displaying an Option or Setup screen.";
+					Message$[2] = "Press the Continue button below to close the Option or Setup screen and process your last command.";
+					Message$[3] = "Press the Cancel button to close this message box.";
+					MessageKeyLabel$ = "Continue";
+					iDialogType = 1;
+					DialogSubFB = 1;
+               }
+            }
+         If (iTemp = 1)
+         	{
+				Message$[1] = "Communication Error!";
+				Message$[2] = "An error occured while getting data from the Fireball.  Please check your software versions and try again.";
+				Message$[3] = "Press OK or Cancel to continue.";
+				MessageKeyLabel$ = "OK";
+				iDialogType = 2;
+				DialogSubFB = 0;
+				}
+         //iEscPending = 0;
+         }
+      Case (2): // Unsolicited Feedback Events
+			{
+         Switch (iSubCom)
+         	{
+            Case (2): // Play Mode Changed
+            	{
+					iPlayMode = atoi(sEscRxArray[0]);
+					If (PlayerMusicSubFB = 1) NowPlaying$[3] = sPlayMode[iPlayMode - 1];
+            	}
+            Case (4): // Now Playing Info Changed
+            	{
+            	iPlayState = atoi(sEscRxArray[0]) - 1;
+					PlayState = iPlayState;
+               If (iPlayerSource = 2) NowPlaying$[4] = sPlayState[iPlayState];
+               Switch (atoi(sEscRxArray[6]))
+               	{
+                  Case (0): iTemp = 0;
+                  Case (1): iTemp = 1;
+                  Case (2): iTemp = 1;
+                  Case (3): iTemp = 1;
+                  Case (4): iTemp = 1;
+                  Case (5): iTemp = 3;
+                  Case (6): iTemp = 2;
+                 	}
+               If (iTemp > 0)
+               	{
+	               If (iTemp <> iPlayerSource)
+	               	{
+	               	iPlayerSource = iTemp;
+	               	InitPlayer();
+	               	}
+	               
+						Switch (iPlayerSource)
+							{
+							Case (1): // Music
+								{
+								NowPlaying$[1] = sEscRxArray[2] + " - " + sEscRxArray[3];
+			               NowPlaying$[2] = itoa(atoi(sEscRxArray[1])) + ". " + sEscRxArray[4]; // Track #. Track Name
+								NowPlaying$[3] = sPlayMode[iPlayMode - 1];
+			               sEscRxArray[1] = sEscRxArray[2] + " - " + sEscRxArray[3];
+								If ((tPlayerData.sTitle <> sEscRxArray[1]) & (Not((Right(tPlayerData.sTitle, 9) = "- Jukebox") & (Right(tPlayerData.sTitle, 9) = "- Jukebox"))))
+									{
+							   	EscTx$ = "ESCX5004\r";
+									}
+								tPlayerData.sTitle = sEscRxArray[2] + " - " + sEscRxArray[3];
+
+								}
+							Case (2): // Radio
+								{
+								NowPlaying$[1] = sEscRxArray[3] + " - " + sEscRxArray[2];
+                        NowPlaying$[2] = sEscRxArray[4];
+								tPlayerData.sTitle = sEscRxArray[3] + " - " + sEscRxArray[2];
+								EscTx$ = "ESCX5004001000201\r";
+								}
+							Case (3): // Movies
+								{
+								NowPlaying$[1] = sEscRxArray[3];
+								If (tPlayerData.sTitle <> sEscRxArray[3])
+									{
+									EscTx$ = "ESCX5004\r";
+									}
+								tPlayerData.sTitle = sEscRxArray[3];
+								}
+							}
+	               }
+	            }
+            Case (7): // Database Changed
+            	{
+					MessageSubFB = 0;
+					CancelWait (MessageSub);
+					Switch (iDBChangeType)
+						{
+						Case (0): //DB changed on FireBall side so we must recache all...
+							{
+							InitSystem();
+							}
+						Case (1): //DB changed by JB Options so we only need to update Playlist group index and count...
+							{
+							If (iPlaylistIndex = 0) // Recache all of the Music Groups
+								{
+								iDBChangeType= 0;
+								InitSystem();
+								//iGroupSource = 1;
+							   //iGroupInfoType = 0;
+								//EscTx$ = "ESCX2001001000201\r";
+								}
+							Else // Just update the Playlist group count.
+								{
+								If (iInitCount = 0) // This was added because we were getting two 0207 messages when deleting a playlist.
+									{
+									iInitCount = 1;
+									iGroupSource = 1;
+									iGroupInfoType = 4;
+									Makestring(EscTx$,"ESCX20020030002%02d0004%04d0004%04d\r", 1, iPlayListIndex, iPlayListIndex);
+									}
+								}
+							}
+						Case (2): //Need to update the Jukebox song count...
+							{
+							If (iJukeboxIndex = 0)
+								{
+								CachePlaylistData();
+								}
+							Else
+								{
+								iTitleInfoType = 3;
+								Makestring(EscTx$,"ESCX20030040002%02d0004%04d0005%05d0005%05d\r", 1, iPlayListIndex, iJukeboxIndex, iJukeboxIndex);
+								}
+							}
+						}
+               }
+            }
+         }
+      Case (20): // Database Information
+      	{
+      	Switch (iSubCom)
+      		{
+            Case (1): // Group Count
+            	{
+            	If ((iDBChangeType= 0) & (iInitCount > 0))
+            		{
+	            	iInitCount = iInitCount - 1;
+						Message$[1] = "Refreshing Guide Data!";
+						Message$[2] = "";
+						Message$[3] = "One Moment Please: " + itoa(iInitCount);
+						CancelWait (MessageSub);
+						WaitMessageSub(); 
+	            	Switch (iGroupSource)
+	            		{
+	            		Case (1): 
+	            			{
+	            			Message$[2] =  "Getting Music Info";
+	            			}
+	            		Case (2): 
+	            			{
+	            			Message$[2] =  "Getting Radio Info";
+	            			}
+	            		Case (3): 
+	            			{
+	            			Message$[2] =  "Getting Movie Info";
+	            			}
+	            		}
+	            	}
+               If (iGroupInfoType = 0)
+               	{               	
+                  iGroupCounts[((iGroupSource - 1) * 2)] = atoi(sEscRxArray[0]);
+	               iGroupInfoType = 1;
+						Makestring(EscTx$,"ESCX20010010002%02d\r", ((iGroupSource - 1) * 2) + 2);
+						}
+               Else
+               	{
+                  iGroupCounts[((iGroupSource - 1) * 2) + 1] = atoi(sEscRxArray[0]);
+                  iGroupInfoType = 0;
+                  If (iGroupCounts[((iGroupSource - 1) * 2) + 1] = 0)
+                  	{
+                  	tMediaGroups[(iGroupSource - 1) * iMaxGroupCount].iCount = 0;
+                  	GetNextGroupData();
+                  	}
+                  Else
+                  	{
+							Makestring(EscTx$,"ESCX20020030002%02d0004%04d0004%04d\r", ((iGroupSource - 1) * 2) + 1, 1, iGroupCounts[((iGroupSource - 1) * 2)]);
+							}
+                  }
+               }
+            Case (2): // Group Info / Title Count
+            	{
+            	If ((iDBChangeType= 0) & (iInitCount > 0))
+            		{
+						iInitCount = iInitCount - 1;
+						Message$[3] = "One Moment Please: " + itoa(iInitCount);
+	            	}
+					If (iGroupInfoType < 2)
+						{
+	               For (iLoop = 0 To iEscRxArrayCount - 1)
+	               	{
+	                  iTemp = (iLoop / 2) + ((iGroupSource - 1) * iMaxGroupCount) + (iGroupCounts[((iGroupSource - 1) * 2)] * iGroupInfoType);
+	                  tMediaGroups[iTemp].iCount = atoi(sEscRxArray[iLoop]);
+	                  iLoop = iLoop + 1;
+	                  tMediaGroups[iTemp].sName = sEscRxArray[iLoop];
+	                  tMediaGroups[iTemp].iOffSet = iGroupInfoType * iGroupCounts[((iGroupSource - 1) * 2)];
+	                  If ((iGroupSource = 1) && (sEscRxArray[iLoop] = "Playlists")) iPlayListIndex = iTemp + 1;
+	                  }
+                  }
+               Switch (iGroupInfoType)
+	              	{
+                  Case (0):
+                  	{
+                     iGroupInfoType = 1;
+							Makestring(EscTx$,"ESCX20020030002%02d0004%04d0004%04d\r", ((iGroupSource - 1) * 2) + 2, 1, iGroupCounts[((iGroupSource - 1) * 2) + 1]); // Get the user group names and counts
+							}
+                  Case (1):
+                  	{
+							If (iDBChangeType= 1)
+								{
+								If ((iPlayListIndex > 0) && (iCachePlayListData = 1))
+									{
+									CachePlayListData();
+									}
+								Else
+									{
+									iDBChangeType= 0;
+									}
+                        }
+							Else
+								{
+	                     If ((iGroupSource = 1)&& (iLimitMusicView = 0))
+	                     	{                 
+	                        iGroupInfoType = 2;
+									EscTx$ = "ESCX20020030002710004000100040001\r"; // Get the all artist count
+									}
+	                     Else
+	                     	{
+	                     	GetNextGroupData();
+	                        }
+								}
+                     }
+                  Case (2):
+                  	{
+                     iArtistCount = atoi(sEscRxArray[0]);
+                     iGroupInfoType = 3;
+                     EscTx$ = "ESCX20020030002910004000100040001\r"; // Get the all song count
+                     }
+                  Case (3):
+                  	{
+                     iSongCount = atoi(sEscRxArray[0]);
+                     iGroupSource = iGroupSource + 1;
+                     iGroupInfoType = 0;
+							Makestring(EscTx$,"ESCX20010010002%02d\r", ((iGroupSource - 1) * 2) + 1); // Get number of items in the system group
+							}
+						Case (4): //Update Playlist Group Count
+							{
+							If (sEscRxArray[1] = "Playlists")
+								{
+		                  tMediaGroups[iPlayListIndex - 1].iCount = atoi(sEscRxArray[0]);
+								If (iCachePlayListData = 1)
+									{
+									CachePlayListData();
+									}
+								Else
+									{
+									iDBChangeType= 0;
+									}
+								}
+							Else
+								{
+								InitSystem();
+								}
+							}
+						}
+					}
+            Case (3): // Title Info
+            	{
+					Switch (iTitleInfoType)
+						{
+						Case (0): // Standard Artist - Title Data for Music Guide
+	               	{ 
+	                  For (iLoop = 0 To iEscRxArrayCount - 1)
+	                  	{
+	                     iTemp = (iLoop / 2);
+	                     tGuideData[iGuideIndex].iTag1[iTemp] = atoi(sEscRxArray[iLoop]);
+	                     iLoop = iLoop + 1;
+	                     sGuideData[((iGuideIndex + 1) * iMaxListCount) + iTemp] = sEscRxArray[iLoop];
+	                     If (iGuideSource = 1) JBSelectFB[iTemp + 1] = 0;
+	                     GuideDataIcon[iTemp + 1] =  tGuideData[iGuideIndex].iGuideDataIcon;
+	                     GuideData$[iTemp + 1] = sIconPad + sEscRxArray[iLoop];
+	                     AltGuideData$[iTemp + 1] = sEscRxArray[iLoop];
+	                     }
+	                  For (iLoop = (iEscRxArrayCount / 2) to iMaxListCount - 1)
+	                  	{
+	                     tGuideData[iGuideIndex].iTag1[iLoop] = 0;
+	                     sGuideData[((iGuideIndex + 1) * iMaxListCount) + iLoop] = "";
+	                     JBSelectFB[iLoop + 1] = 1;
+	                     GuideDataIcon[iLoop + 1] = 0;
+	                     GuideData$[iLoop + 1] = "";
+			               AltGuideData$[iLoop + 1] = "";
+	                     }
+	                  }
+						Case (1): // Music Player Data
+	               	{
+	                  tPlayerData.iCount = atoi(sEscRxArray[0]);
+							UpdatePlayerListData();
+	                  }
+						Case (2): // Playlist Cache Data
+							{
+	                  For (iLoop = 0 To iEscRxArrayCount - 1)
+	                  	{
+	                     iTemp = (iLoop / 2);
+	                     tPlayLists[iPlayListLoopIndex + iTemp - 1].iCount = atoi(sEscRxArray[iLoop]);
+	                     iLoop = iLoop + 1;
+	                     tPlayLists[iPlayListLoopIndex + iTemp - 1].sName = sEscRxArray[iLoop];
+	                     If (Find(" - Jukebox", sEscRxArray[iLoop]) > 0) iJukeboxIndex = iPlayListLoopIndex + iTemp;
+	                     }
+	                 	iPlayListLoopIndex = iPlayListLoopIndex + iPlaylistLoopCount;
+	                  If (iPlayListLoopIndex > tMediaGroups[iPlayListIndex - 1].iCount)
+	                  	{
+	                  	If (iDBChangeType= 0)
+									{
+									GetNextGroupData();
+									}
+								Else
+									{
+									GoHome();
+									}
+	                  	}
+	                  Else
+	                  	{
+								GetCachePlaylistData();	
+					         }
+							}
+						Case (3): //Update Jukebox song count
+							{
+							If (Find(" - Jukebox", sEscRxArray[1]) > 0)
+								{
+								tPlayLists[iJukeboxIndex - 1].iCount = atoi(sEscRxArray[0]);
+								EscTx$ = "ESCX5004\r";	
+								}
+							Else
+								{
+								CachePlaylistData();
+								}
+							}
+						}
+               }
+            Case (4): // Track Info
+            	{
+               If (iTrackInfoType = 0)
+               	{ 
+	               For (iLoop = 0 To iEscRxArrayCount - 1)
+	               	{
+	                  sGuideData[((iGuideIndex + 1) * iMaxListCount) + iLoop] = sEscRxArray[iLoop];
+                     JBSelectFB[iLoop + 1] = 0;
+                     GuideDataIcon[iLoop + 1] =  tGuideData[iGuideIndex].iGuideDataIcon;
+	                  GuideData$[iLoop + 1] = sIconPad + sEscRxArray[iLoop];
+	                  AltGuideData$[iLoop + 1] = sEscRxArray[iLoop];
+	                 	}
+	               For (iLoop = iEscRxArrayCount to iMaxListCount - 1)
+	               	{
+	                  sGuideData[((iGuideIndex + 1) * iMaxListCount) + iLoop] = "";
+                     JBSelectFB[iLoop + 1] = 1;
+                     GuideDataIcon[iLoop + 1] = 0;
+	                  GuideData$[iLoop + 1] = "";
+		               AltGuideData$[iLoop + 1] = "";
+	                  }
+	               }
+	            Else
+	            	{
+	            	For (iLoop = 0 to iEscRxArrayCount - 1)
+	            		{
+	                  PlayerData$[iLoop + 1] = itoa(tPlayerData.iIndex + iLoop) + ". " + sEscRxArray[iLoop];
+	                  }
+	               For (iLoop = iEscRxArrayCount to iMaxListCount - 1)
+	               	{
+	                  PlayerData$[iLoop + 1] = "";
+	                  }
+	            	}
+	            }
+            Case (7): // Search Results
+            	{
+					iKBInfoType = 0;
+					GuideKeyBoardSubFB = 0;
+					sKeyboard = "";
+					Keyboard$ = "";
+               tGuideData[iGuideIndex].iIndex = atoi(sEscRxArray[1]);
+					iSelectedGuideIndex = 0;
+               FormatEscTxData();
+               }
+         
+            Case (8): //Cover Info
+            	{
+					Switch (iCoverInfoType)
+						{
+						Case (0): // Guide Covers
+							{
+	                  For (iLoop = 0 To iEscRxArrayCount - 1)
+	                  	{
+								sGuideURLs[iLoop] = sEscRxArray[iLoop];
+	                     GuideCoverURLs$[iLoop + 1] = EscapeSpaces(sEscRxArray[iLoop]);
+	                     }
+	                  For (iLoop = iEscRxArrayCount to iMaxListCount - 1)
+	                  	{
+	                     tGuideData[iGuideIndex].iTag1[iLoop] = 0;
+								sGuideURLs[iLoop] = "";
+	                     GuideCoverURLs$[iLoop + 1] = "";
+	                     }
+	                  EscTx$ = sNextEscTxData;
+							}
+						Case (1): NowPlaying$[5] = EscapeSpaces(sEscRxArray[0]); // Player Cover
+						Case (2): MovieDetails$[4] = EscapeSpaces(sEscRxArray[0]); // Movie Details Cover
+						}
+               }
+
+            Case (9): //Music Guide Cover Art and Movie Details
+            	{
+					Switch (iTitleInfoType)
+						{
+						Case (0): // Music Cover URLS
+							{
+	                  For (iLoop = 0 To iEscRxArrayCount - 1)
+	                  	{
+	                     iTemp = (iLoop / 8);
+	                     iLoop = iLoop + 2;
+	                     sGuideData[((iGuideIndex + 1) * iMaxListCount) + iTemp] = sEscRxArray[iLoop] + " - " + sEscRxArray[iLoop + 1];
+	                     iLoop = iLoop + 2;
+	                     tGuideData[iGuideIndex].iTag1[iTemp] = atoi(sEscRxArray[iLoop]);
+								iLoop = iLoop + 3;
+								sGuideURLs[iTemp] = sEscRxArray[iLoop];
+	                     GuideCoverURLs$[iTemp + 1] = EscapeSpaces(sEscRxArray[iLoop]);
+	                     }
+	                  For (iLoop = (iEscRxArrayCount / 8) to iMaxListCount - 1)
+	                  	{
+	                     tGuideData[iGuideIndex].iTag1[iLoop] = 0;
+	                     sGuideData[((iGuideIndex + 1) * iMaxListCount) + iLoop] = "";
+								sGuideURLs[iLoop] = "";
+	                     GuideCoverURLs$[iLoop + 1] = "";
+	                     }
+							}
+						Case (1): // Guide Movie Details
+							{
+							MovieDetails$[2] = sEscRxArray[1];
+							MovieDetails$[3] = sEscRxArray[0];
+		            	FillMovieDescriptionArray();
+							SetArray(sMovieDetailsDescriptionArray, "");
+							For (iLoop = 1 to iMovieDescriptionCount) sMovieDetailsDescriptionArray[iLoop] = sMovieDescriptionArray[iLoop];
+							iMovieDetailsCount = iMovieDescriptionCount;
+							iMovieDetailsIndex = 1;
+							UpdateMovieDetailsListData();
+							}
+						Case (2): // Player Movie Details
+							{
+							NowPlaying$[2] = sEscRxArray[1];
+							NowPlaying$[3] = sEscRxArray[0];
+		            	FillMovieDescriptionArray();
+							SetArray(sNowPlayingMovieDescriptionArray, "");
+							For (iLoop = 1 to iMovieDescriptionCount) sNowPlayingMovieDescriptionArray[iLoop] = sMovieDescriptionArray[iLoop];
+							tPlayerData.iCount = iMovieDescriptionCount;
+							tPlayerData.iIndex = 1;
+		            	UpdatePlayerListData();
+							}
+						}
+               }
+
+            Case (18): // Artist-Album Info
+            	{
+               If (iTitleInfoType = 0)
+						{
+						For (iLoop = 0 To iEscRxArrayCount - 1)
+	               	{
+	                  iTemp = (iLoop / 4);
+	                  tGuideData[iGuideIndex].iTag1[iTemp] = atoi(sEscRxArray[iLoop]);
+	                  iLoop = iLoop + 1;
+	                  tGuideData[iGuideIndex].iTag2[iTemp] = atoi(sEscRxArray[iLoop]);
+	                  iLoop = iLoop + 1;
+	                  sGuideData[((iGuideIndex + 1) * iMaxListCount) + iTemp] = sEscRxArray[iLoop];
+	                  JBSelectFB[iTemp + 1] = 0;
+	                  GuideDataIcon[iTemp + 1] =  tGuideData[iGuideIndex].iGuideDataIcon;
+	                  GuideData$[iTemp + 1] = sIconPad + sEscRxArray[iLoop];
+	                  AltGuideData$[iTemp + 1] = sEscRxArray[iLoop];
+	                  iLoop = iLoop + 1; // Not using the avialability code at this time...
+	                  }
+	               For (iLoop = (iEscRxArrayCount / 4) to iMaxListCount - 1)
+	               	{
+	                  tGuideData[iGuideIndex].iTag1[iLoop] = 0;
+	                  tGuideData[iGuideIndex].iTag2[iLoop] = 0;
+	                  sGuideData[((iGuideIndex + 1) * iMaxListCount) + iLoop] = "";
+	                  JBSelectFB[iLoop + 1] = 1;
+	                  GuideDataIcon[iLoop + 1] = 0;
+	                  GuideData$[iLoop + 1] = "";
+		               AltGuideData$[iLoop + 1] = "";
+	                  }
+	               }
+					Else
+						{
+						iPlayerSource = iGuideSource;
+						tPlayerData.iGroupType = 1;
+						tPlayerData.iGroup = 1;
+						tPlayerData.iContainer = atoi(sEscRxArray[1]);
+						tPlayerData.iCount = atoi(sEscRxArray[0]);
+						tPlayerData.iIndex = 1;
+			         PlaytPlayerData(1);
+						}
+					}
+            }
+         }   
+      Case (50):
+      	{
+         Switch (iSubCom)
+         	{
+            Case (2): // Music Play Mode
+            	{
+					iPlayMode = atoi(sEscRxArray[0]);
+					NowPlaying$[3] = sPlayMode[iPlayMode - 1];
+               }
+            Case (4): // Now Playing Info
+            	{
+               Switch (atoi(sEscRxArray[3]))
+               	{
+                  Case (0): iTemp = 0;
+                  Case (1): iTemp = 1;
+                  Case (2): iTemp = 1;
+                  Case (3): iTemp = 1;
+                  Case (4): iTemp = 1;
+                  Case (5): iTemp = 3;
+                  Case (6): iTemp = 2;
+                 	}
+					If (iTemp > 0)
+               	{
+						tPlayerData.iGroupType = (iTemp * 2) - 1;
+						tPlayerData.iGroup = 1;
+						tPlayerData.iContainer = atoi(sEscRxArray[1]);
+			         tPlayerData.iIndex = 1;
+			         tPlayerData.iCommand = 2005;
+			         tPlayerData.iCount = 1;
+						If (iTemp <> iPlayerSource)
+							{
+							iPlayerSource = iTemp;
+							InitPlayer();
+							NowPlaying$[1] = sEscRxArray[0];
+							If (iPlayerSource = 1)
+								{
+								If (atoi(sEscRxArray[2]) > 0) NowPlaying$[2] = "Track " + itoa(atoi(sEscRxArray[2]));
+								NowPlaying$[3] = sPlayMode[iPlayMode - 1];
+								}
+							}
+	               Switch (iPlayerSource)
+	               	{
+	               	Case (1): // Music
+	               		{
+			               iCoverInfoType = 1;
+			               Makestring(EscTx$,"ESCX20080040002%02d0004%04d0005%05d0005%05d\r", tPlayerData.iGroupType, tPlayerData.iGroup, tPlayerData.iContainer, tPlayerData.iContainer);
+			               iTitleInfoType = 1;
+	               		Makestring(EscTx$,"ESCX20030040002%02d0004%04d0005%05d0005%05d\r", tPlayerData.iGroupType, tPlayerData.iGroup, tPlayerData.iContainer, tPlayerData.iContainer);
+	               		}
+	               	Case (2): // Radio
+	               		{
+	               		If (iEscRxArrayCount = 5)
+	               			{
+	               			NowPlaying$[5] = EscapeSpaces(sEscRxArray[4]); // Player Cover
+	               			}
+	               		}
+	               	Case (3): // Movies
+	               		{
+			               iCoverInfoType = 1;
+			               Makestring(EscTx$,"ESCX20080040002%02d0004%04d0004%04d0004%04d\r", tPlayerData.iGroupType, tPlayerData.iGroup, tPlayerData.iContainer, tPlayerData.iContainer);
+			               iTitleInfoType = 1;
+         					Makestring(EscTx$,"ESCX20090040002%02d0004%04d0004%04d0004%04d\r", tPlayerData.iGroupType, tPlayerData.iGroup, tPlayerData.iContainer, tPlayerData.iContainer);
+	               		}
+	               	}
+	               }
+	            }
+            Case (7): // FireBall Model Info...
+            	{ 
+            	If (iMovieSupport = 1)
+            		{
+	            	If ((sEscRxArray[0] = "FireBall-D") || (sEscRxArray[0] = "FireBall-D3") || (sEscRxArray[0] = "FireBall-D552") || (sEscRxArray[0] = "FireBall-MP200") || (sEscRxArray[0] = "FireBall-X1"))
+	            		{
+	            		iMovieSupport = 1;
+	            		}
+	            	Else
+	            		{
+	            		iMovieSupport = 0;
+	            		}
+	            	}
+            	iLimitMusicView = 0;
+            	If ((sEscRxArray[0] = "FireBall-D") || (sEscRxArray[0] = "FireBall-MP200")) iLimitMusicView = 1;
+            	iInitCount = 10 + (iMovieSupport * 4) - (iLimitMusicView * 2);
+					Message$[3] = "One Moment Please: " + itoa(iInitCount);
+					EscTx$ = "ESCX2001001000201\r";
+               }
+            }
+         }
+      }
+   }
+
+/*******************************************************************************************
+  Event Handlers
+*******************************************************************************************/
+
+CHANGE EscConnectStatus
+	{
+	If (EscConnect = 0)
+		{
+		EscConnect = 1;
+		}             
+	Else
+		{
+		If (EscConnectStatus = 2)
+			{
+			InitSystem();
+			}
+		Else If ((EscConnectStatus > 2) && (EscConnectStatus < 6))
+			{
+			Message$[1] = "Communication Error!";
+			Message$[2] = "An error occured while trying to connect to the Fireball.  Please check your IP address settings.  Error Type = " + itoa(EscConnectStatus) + ".";
+			Message$[3] = "Press Continue or Cancel to Try Again.";
+			MessageKeyLabel$ = "Continue";
+			iDialogType = 3;
+			DialogSubFB = 1;
+			}
+		}
+	}
+
+CHANGE EscRX$
+	{
+	While(Find("\x0D", EscRX$) > 0) 
+   	{
+   	sEscRx = Remove("\x0D", EscRX$);
+   	If (Debug = 1) Print("EscRx: %s x0D\n", sEscRx);  
+   	ProcessEscRxData();
+   	}
+	}
+
+CHANGE LastEscTx$
+	{
+	If (Debug = 1) Print("EscTx: %s\n", LastEscTx$);
+	sLastEscTxData = LastEscTx$;
+	}
+	
+PUSH GuideSelect
+	{
+	GuideSelector(GetLastModifiedArrayIndex());
+	}
+
+PUSH GuideHome
+	{
+	GoHome();
+	} 
+
+PUSH GuideBack
+	{
+	If (bUseStaticGuides = 1)
+		{
+		iStaticGuideIndex = 0;
+		iStaticListIndex = 1;
+		DisplayStaticGuideData();
+		}
+	Else
+		{
+		If (iGuideIndex > 0)
+			{
+			iGuideIndex = iGuideIndex - 1;
+			DisplayDynamicGuideData();
+			}
+		Else
+			{
+			iStaticGuideIndex = iGuideSource;
+			bUseStaticGuides = 1;
+			DisplayStaticGuideData();
+			}
+		}
+	} 
+
+PUSH GuidePageUp
+	{
+	If (bUseStaticGuides = 0)
+		{
+		If (tGuideData[iGuideIndex].iIndex > iMaxListCount)
+			{
+			tGuideData[iGuideIndex].iIndex = tGuideData[iGuideIndex].iIndex - iMaxListCount;
+			iSelectedGuideIndex = 0;
+			FormatEscTxData();
+			}
+		Else If (tGuideData[iGuideIndex].iIndex > 1)
+			{
+			tGuideData[iGuideIndex].iIndex = 1;
+			iSelectedGuideIndex = 0;
+			FormatEscTxData();
+			}
+		}
+	Else
+		{
+		If (iStaticListIndex > iMaxListCount)
+			{
+			iStaticListIndex = iStaticListIndex - iMaxListCount;
+			DisplayStaticGuideData();
+			}
+		Else If (iStaticListIndex > 1)
+			{
+			iStaticListIndex = 1;
+			DisplayStaticGuideData();
+			}
+		}
+	}
+
+PUSH GuidePageDn
+	{
+	If (bUseStaticGuides = 0)
+		{
+		If (tGuideData[iGuideIndex].iIndex + iMaxListCount - 1 < tGuideData[iGuideIndex].iCount)
+			{
+			tGuideData[iGuideIndex].iIndex = tGuideData[iGuideIndex].iIndex + iMaxListCount;
+			iSelectedGuideIndex = 0;
+			FormatEscTxData();
+			}
+		}
+	Else
+		{
+		If (iStaticListIndex + iMaxListCount - 1 < iStaticListCount)
+			{
+			iStaticListIndex = iStaticListIndex + iMaxListCount;
+			DisplayStaticGuideData();
+			}
+		}
+	}
+
+PUSH AltGuidePageUp
+	{
+	If (bUseStaticGuides = 0)
+		{
+		If (tGuideData[iGuideIndex].iIndex > iAltListCount)
+			{
+			tGuideData[iGuideIndex].iIndex = tGuideData[iGuideIndex].iIndex - iAltListCount;
+			iSelectedGuideIndex = 0;
+			FormatEscTxData();
+			}
+		Else If (tGuideData[iGuideIndex].iIndex > 1)
+			{
+			tGuideData[iGuideIndex].iIndex = 1;
+			iSelectedGuideIndex = 0;
+			FormatEscTxData();
+			}
+		}
+	Else
+		{
+		If (iStaticListIndex > iAltListCount)
+			{
+			iStaticListIndex = iStaticListIndex - iAltListCount;
+			DisplayStaticGuideData();
+			}
+		Else If (iStaticListIndex > 1)
+			{
+			iStaticListIndex = 1;
+			DisplayStaticGuideData();
+			}
+		}
+	}
+
+PUSH AltGuidePageDn
+	{
+	If (bUseStaticGuides = 0)
+		{
+		If (tGuideData[iGuideIndex].iIndex + iAltListCount - 1 < tGuideData[iGuideIndex].iCount)
+			{
+			tGuideData[iGuideIndex].iIndex = tGuideData[iGuideIndex].iIndex + iAltListCount;
+			iSelectedGuideIndex = 0;
+			FormatEscTxData();
+			}
+		}
+	Else
+		{
+		If (iStaticListIndex + iAltListCount - 1 < iStaticListCount)
+			{
+			iStaticListIndex = iStaticListIndex + iAltListCount;
+			DisplayStaticGuideData();
+			}
+		}
+	}
+
+PUSH GuideSlide
+	{
+	If (bUseStaticGuides = 0)
+		{
+		If (tGuideData[iGuideIndex].iCount > iMaxListCount)
+			{
+			Delay(25);
+			tGuideData[iGuideIndex].iIndex = (tGuideData[iGuideIndex].iCount * (iSlideMax - GuideSlideIn)) / iSlideMax;
+			If (tGuideData[iGuideIndex].iIndex = 0) tGuideData[iGuideIndex].iIndex = 1;
+			iSelectedGuideIndex = 0;
+			FormatEscTxData();
+			}
+		}
+	}
+
+PUSH GuideOptions
+	{
+	If (iGuideSource = 1) 
+		{
+		GuideOptionsMusicSubFB = 1;
+		}
+	Else
+		{
+		GuideOptionsSubFB = 1;
+		}
+	}
+
+PUSH PlayerOptions
+	{
+	If ((iGuideSource = 0) || (iPlayerSource = 1 )) PlayerOptionsMusicSubFB = 1;
+	}
+
+PUSH GuideOptionsSelect
+	{
+	Switch (GetLastModifiedArrayIndex())
+		{
+		Case (1): EscConnect = 0; //Refresh Connection and Guide Data
+		}
+	GuideOptionsSubFB = 0;
+	}
+
+PUSH GuideOptionsMusicSelect
+	{
+	MusicOptionsSelector(GetLastModifiedArrayIndex());
+	GuideOptionsMusicSubFB = 0;
+	}
+
+PUSH PlayerOptionsMusicSelect
+	{
+	If (GetLastModifiedArrayIndex() < 4) MusicOptionsSelector(GetLastModifiedArrayIndex());
+	PlayerOptionsMusicSubFB = 0;
+	}
+
+PUSH JBSelect
+	{
+	iJBSelectedIndex = GetLastModifiedArrayIndex();
+	If (JBSelectFB[iJBSelectedIndex] = 0)
+		{
+		If (((tGuideData[iGuideIndex].iCommand = 3) || (tGuideData[iGuideIndex].iCommand = 2003)) && (tGuideData[iGuideIndex].iGroupType = 1) && (tGuideData[iGuideIndex].iGroup = iPlayListIndex))
+			{
+			Message$[1] = "Caution: Delete Playlist Request!";
+			Message$[2] = "Pressing the Plus Key on a plalist allows you to delete that playlist.  Are you sure you want to delete the playlist?";
+			Message$[3] = "Press Delete to delete the playlist or Cancel to return.";
+			MessageKeyLabel$ = "Delete";
+			iDialogType = 4;
+			DialogSubFB = 1;
+			}
+		Else
+			{
+			JBOptionsSubFB = 1;
+			}
+		}
+	}
+
+PUSH JBOptionSelect
+	{
+	Integer iTemp;
+	Integer iIndex;
+	EscData tTempData;
+	
+	iIndex = GetLastModifiedArrayIndex();
+	
+	tTempData.iCommand = tGuideData[iGuideIndex].iCommand;
+	tTempData.iGroupType = tGuideData[iGuideIndex].iGroupType;
+	tTempData.iGroup = tGuideData[iGuideIndex].iGroup;
+	Switch (tTempData.iCommand)
+		{
+		Case (1):
+			{
+         tTempData.iGroupType = 1;
+         If (tGuideData[iGuideIndex].iTag2[iJBSelectedIndex - 1] > 0) tTempData.iGroupType = 2;
+         tTempData.iGroup = tGuideData[iGuideIndex].iIndex + iJBSelectedIndex - 1;
+         tTempData.iGroup = tTempData.iGroup - tGuideData[iGuideIndex].iTag2[iJBSelectedIndex - 1];
+         tGuideData[iGuideIndex].iCount = tGuideData[iGuideIndex].iTag1[iJBSelectedIndex - 1];
+			tTempData.iContainer = 1;
+         tTempData.iIndex = 1;
+         }
+		Case (2003):
+			{
+         tTempData.iContainer = tGuideData[iGuideIndex].iIndex + iJBSelectedIndex - 1;
+         tTempData.iCount = tGuideData[iGuideIndex ].iTag1[iJBSelectedIndex - 1];
+         tTempData.iIndex = 1;
+         }
+		Case (2018):
+			{
+         tTempData.iContainer = tGuideData[iGuideIndex].iTag2[iJBSelectedIndex - 1];
+         tTempData.iCount = tGuideData[iGuideIndex ].iTag1[iJBSelectedIndex - 1];
+         tTempData.iIndex = 1;
+			} 
+		Case (2004):
+			{
+			tTempData.iContainer = tGuideData[iGuideIndex].iContainer;  
+			tTempData.iCount = tGuideData[iGuideIndex].iTag1[iJBSelectedIndex - 1];
+			tTempData.iIndex = tGuideData[iGuideIndex].iIndex + iJBSelectedIndex - 1;
+			}
+		}
+	If (iIndex = 1) // Play Now  
+		{
+		If ((tGuideData[iGuideIndex].iCommand = 2003) && (tGuideData[iGuideIndex].iGroupType = 71))
+			{
+			//Get first title by this artist to play...
+			iTitleInfoType = 1;
+         Makestring(EscTx$,"ESCX20180050002%02d0004%04d0004%04d0004%04d0004%04d\r", tTempData.iGroupType, tTempData.iGroup, tTempData.iContainer, 1, 1);
+			}
+		Else
+			{
+			iPlayerSource = iGuideSource;
+			If (tTempData.iGroupType = 71) tTempData.iGroupType = 1;
+			tPlayerData.iGroupType = tTempData.iGroupType;
+			tPlayerData.iGroup = tTempData.iGroup;
+			tPlayerData.iContainer = tTempData.iContainer;
+			tPlayerData.iCount = tTempData.iCount;
+			tPlayerData.iIndex = tTempData.iIndex;
+         PlaytPlayerData(1);
+			}
+		}
+	Else If ((iIndex = 2) || (iIndex = 3)) // Add / Remove Selection
+		{
+		If (tTempData.iCommand = 1) tTempData.iContainer = 0;
+		If (tTempData.iCommand = 2018) tTempData.iGroup = 1;
+		If (tTempData.iCommand <> 2004) tTempData.iIndex = 0;
+		iTemp = 0; //Add
+		If (iIndex = 3) iTemp = 1; //Remove Selection
+		Message$[1] = "Jukebox Update!";
+		Message$[2] = "Jukebox queue is being updated.";
+		Message$[3] = "One Moment Please...";
+		CancelWait (MessageSub);
+		WaitMessageSub();
+		If (iJukeboxIndex = 0)
+			{			
+			iInitCount = 0;
+			iDBChangeType= 1;
+			}
+		Else
+			{
+			iDBChangeType= 2;
+			}
+		Makestring(EscTx$,"ESCX20130050002%02d0004%04d0005%05d0005%05d0002%02d\r", tTempData.iGroupType, tTempData.iGroup, tTempData.iContainer, tTempData.iIndex, iTemp);
+		}
+	Else If (iIndex = 4) // Play Queue
+		{
+		EscTx$ = "ESCX1068\r";
+		ShowPlayer();
+		}
+	JBOptionsSubFB = 0;
+	}
+
+PUSH Search
+	{
+	If (bUseStaticGuides = 0)
+		{
+		sKeyboard = "";
+		Keyboard$ = "";
+		KeyboardLabel$ = "Search String:";
+		KeyboardKeyLabel$ = "Search";
+		iKBInfoType = 1;
+		GuideKeyboardSubFB = 1;
+		}
+	}
+
+PUSH KBSave
+	{
+	
+	Switch (iKBInfoType)
+		{
+		Case (1): 
+			{
+			iNoDataType = 0;
+			Makestring(EscTx$,"ESCX20070030002%02d0004%04d%04d%s\r", tGuideData[iGuideIndex].iGroupType, tGuideData[iGuideIndex].iGroup, Len(sKeyboard), sKeyboard);
+			}
+		Case (2): 
+			{
+			iNoDataType = 1;
+			Makestring(EscTx$,"ESCX20110020004%04d%04d%s\r", 0, Len(sKeyboard), sKeyboard);
+			iInitCount = 0;
+			iDBChangeType= 1;
+			iKBInfoType = 0;
+			PlayerKeyboardSubFB = 0;
+			GuideKeyboardSubFB = 0;
+			Message$[1] = "Creating Playlist!";
+			Message$[2] = "Your playlist is being created.";
+			Message$[3] = "One Moment Please...";
+			CancelWait (MessageSub);
+			WaitMessageSub();
+			}
+		}
+	}
+
+PUSH KBClear
+	{
+	sKeyboard = "";
+	Keyboard$ = "";
+	}
+
+PUSH KBCancel
+	{
+	iKBInfoType = 0;
+	GuideKeyboardSubFB = 0;
+	PlayerKeyboardSubFB = 0;
+	sKeyboard = "";
+	Keyboard$ = "";
+	DisplayDynamicGuideData();
+	}
+
+PUSH PlayerOn
+	{
+	ShowPlayer();
+	}
+
+PUSH PlayerTrackSelect
+	{
+	tPlayerData.iTag1[0] = tPlayerData.iIndex + GetLastModifiedArrayIndex() - 1;
+   Makestring(EscTx$,"ESCX20050040002%02d0004%04d0005%05d0005%05d\r", tPlayerData.iGroupType, tPlayerData.iGroup, tPlayerData.iContainer, tPlayerData.iTag1[0]);
+	}
+
+PUSH PlayerPageUp
+	{
+	If (tPlayerData.iIndex > iMaxListCount)
+		{
+		tPlayerData.iIndex = tPlayerData.iIndex - iMaxListCount;
+		UpdatePlayerListData();
+		}
+	Else If (tPlayerData.iIndex > 1)
+		{
+		tPlayerData.iIndex = 1;
+		UpdatePlayerListData();
+		}
+	}
+
+PUSH PlayerPageDn
+	{
+	If (tPlayerData.iIndex + iMaxListCount - 1 < tPlayerData.iCount)
+		{
+		tPlayerData.iIndex = tPlayerData.iIndex + iMaxListCount;
+		UpdatePlayerListData();
+		}
+	}
+
+PUSH PlayerSlide
+	{
+	If (tPlayerData.iCount > iMaxListCount)
+		{
+		Delay(25);
+		tPlayerData.iIndex = (tPlayerData.iCount * (iSlideMax - PlayerSlideIn)) / iSlideMax;
+		If (tPlayerData.iIndex = 0) tPlayerData.iIndex = 1;
+		UpdatePlayerListData();
+		}
+	}
+
+PUSH PlayMode
+	{
+	PlayModeSubFB = 1;
+	}
+	
+PUSH PlayModeSelect
+	{
+	If (GetLastModifiedArrayIndex() < 7) Makestring(EscTx$,"ESCX70040010002%02d\r", GetLastModifiedArrayIndex());
+	PlayModeSubFB = 0;
+	}
+  
+PUSH MessageContinue
+	{
+	Switch (iDialogType)
+		{
+		Case (1):
+			{
+			EscTx$ = "ESCX1055\r";
+			EscTx$ = "ESCX1055\r";
+			Wait (25) EscTx$ =  sResendEscTxData;
+			}
+		Case (4): 
+			{
+			iInitCount = 0;
+			iDBChangeType= 1;
+			Makestring(EscTx$,"ESCX20120010004%04d\r", tGuideData[iGuideIndex].iIndex + iJBSelectedIndex - 1);
+			Message$[1] = "Deleting Playlist!";
+			Message$[2] = "The selected playlist is being deleted.";
+			Message$[3] = "One Moment Please...";
+			CancelWait (MessageSub);
+			WaitMessageSub();
+			}
+		Case (5): EscConnect = 0; //Refresh Connection and Guide Data
+		}
+	DialogSubFB = 0;
+	}
+
+PUSH MessageCancel
+	{
+	DialogSubFB = 0;
+	}
+
+PUSH MovieDetailsPlay
+	{
+	GuideSelector(1);
+	}
+
+PUSH MovieDetailsPageUp
+	{
+	If (iMovieDetailsIndex > iMaxListCount)
+		{
+		iMovieDetailsIndex = iMovieDetailsIndex - iMaxListCount;
+		UpdateMovieDetailsListData();
+		}
+	Else If (iMovieDetailsIndex > 1)
+		{
+		iMovieDetailsIndex = 1;
+		UpdateMovieDetailsListData();
+		}
+	}
+
+PUSH MovieDetailsPageDn
+	{
+	If (iMovieDetailsIndex + iMaxListCount - 1 < iMovieDetailsCount)
+		{
+		iMovieDetailsIndex = iMovieDetailsIndex + iMaxListCount;
+		UpdateMovieDetailsListData();
+		}
+	}
+
+PUSH RemoteSelect
+	{
+	Integer iRemote;
+	String sTemp[1];
+
+	iRemote = GetLastModifiedArrayIndex() - 1;
+	If (iKBInfoType = 0)  //Remote Control Command
+      {
+		Makestring(EscTx$, "ESCX10%02d\r", iRemote);
+		}
+	Else
+		{		
+		sTemp = "";
+		If ((iRemote > 9) && (iRemote < 20))
+			{
+			sTemp = itoa(iRemote - 10);
+			}
+		If ((iRemote > 19) && (iRemote < 30))
+			{
+			Switch (iRemote)
+				{
+				Case (20): sTemp = "~";
+				Case (21): sTemp = ".";
+				Case (22): sTemp = "/";
+				Case (23): sTemp = ",";
+				Case (24): sTemp = "?";
+				Case (25): sTemp = "@";
+				Case (26): sTemp = "-";
+				Case (27): sTemp = "_";
+				Case (28): sTemp = "*";
+				Case (29): sTemp = "#";
+				}
+			}
+		If (iRemote = 70) sTemp = " ";
+		If (iRemote = 71) sTemp = Chr(8); //BackSpace
+		If (iRemote > 73) 
+			{
+			If ((sKeyboard = "") || (Right(sKeyboard, 1) = " ")) //Upper Case sTemp
+				{
+				sTemp = Chr(iRemote - 9); // ASCII A = 65 (65 - 74 = -9)
+				}	
+			Else
+				{
+				sTemp = Chr(iRemote + 23); // ASCII a = 97 (97 - 74 = 23)
+				}	
+			}
+		If ((sTemp = Chr(8)) && (sKeyboard <> ""))
+			{
+			sKeyboard = Left(sKeyboard, Len(sKeyboard) - 1);
+			}
+		Else
+			{
+			sKeyboard = sKeyboard + sTemp;
+			}
+		Keyboard$ = sKeyboard;
+		}
+	}
+
+PUSH VideoControls
+	{
+	If (VideoControlsSubFB = 0)
+		{
+		VideoControlsSubFB = 1;
+		}
+	Else
+		{
+		VideoControlsSubFB = 0;
+		}
+	}	
+
+PUSH RemoteKB
+	{
+	RemoteKBSubFB = 1;
+	}
+
+PUSH RemoteKBCancel
+	{
+	RemoteKBSubFB = 0;
+	}
+
+CHANGE MusicSupport
+	{
+	iMusicSupport = MusicSupport;
+	}
+
+CHANGE RadioSupport
+	{
+	iRadioSupport = RadioSupport;
+	}
+
+CHANGE MovieSupport
+	{
+	iMovieSupport = MovieSupport;
+	}
+
+CHANGE CoverSupport
+	{
+	iCoverSupport = CoverSupport;
+	}
+
+RELEASE TouchUp
+	{
+	Makestring(EscTx$, "ESCX10060020003%03d0003%03d\r", (NavigateX * 720)/65536, ((65536-NavigateY) * 480)/65536);
+	}
+
+PUSH FBUpdate
+	{
+	FBName$ = sFBName;
+	If (bUseStaticGuides = 1)
+		{
+		InitGuide();
+		DisplayStaticGuideData();
+		}
+	Else
+		{
+		DisplayDynamicGuideData();
+		}
+	iPlayerSource = 0;
+	EscTx$ = "ESCX5002\r";	
+	EscTx$ = "ESCX5004\r";	
+	}
+	
+/*******************************************************************************************
+  Main()
+*******************************************************************************************/
+
+Function Main()
+	{
+	sIconPad = "         ";
+   sPlayMode[0] = "Normal";
+   sPlayMode[1] = "Repeat Track";
+   sPlayMode[2] = "Repeat Title";
+   sPlayMode[3] = "Repeat Group";
+   sPlayMode[4] = "Random Title";
+   sPlayMode[5] = "Random Group";
+   
+   sPlayState[0] = "Playing";
+   sPlayState[1] = "Stopped";
+   sPlayState[2] = "Paused";
+   sPlayState[3] = "Locating Station...";
+   sPlayState[4] = "Buffering...";
+   sPlayState[5] = "Station Not Available.";
+
+	WaitForInitializationComplete();
+	sFBName = GetSymbolReferenceName();
+	EscConnect = 1;
+	
+	//Print ("sText = %s\n", sText); //Debug Print Example
+	//Print ("iVal = %d\n", iVal); //Debug Print Example
+
+	}

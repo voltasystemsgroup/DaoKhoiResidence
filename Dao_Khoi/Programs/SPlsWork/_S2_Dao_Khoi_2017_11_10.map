@@ -1,0 +1,582 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+ram              0x80000000         0x00500000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+                0x00000000                __DYNAMIC=0x0
+                0x00400000                PROVIDE (__stack, 0x400000)
+                0x00000000                PROVIDE (hardware_init_hook, 0x0)
+                0x00000000                PROVIDE (_hardware_init_hook, 0x0)
+                0x00000000                PROVIDE (software_init_hook, 0x0)
+                0x00000000                PROVIDE (_software_init_hook, 0x0)
+
+.text           0x80000000    0x5bee0
+ *(.text)
+ .text          0x80000000    0x1e9e0 S2_Escient_FireBall_SIMPL__v6_0_3.o
+                0x8001daf0                S2_Escient_FireBall_SIMPL__v6_0_3__SPLS_TMPVAR__WAITLABEL_0__
+                0x8001e68a                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00021
+                0x8001e112                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0000F
+                0x80017656                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00008
+                0x8001db3c                S2_Escient_FireBall_SIMPL__v6_0_3__SPLS_TMPVAR__WAITLABEL_1__
+                0x8001e7c8                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00024
+                0x8001dec4                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0000B
+                0x8001ddc2                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00004
+                0x8001a642                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0001A
+                0x8001a3ca                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00017
+                0x8001da0c                S2_Escient_FireBall_SIMPL__v6_0_3_ESCDATA_Constructor
+                0x80019fec                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00014
+                0x8001e508                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0001E
+                0x8001da7a                S2_Escient_FireBall_SIMPL__v6_0_3_CACHEDATA_Constructor
+                0x80019608                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00012
+                0x8001e8d2                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00027
+                0x8001dc24                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00002
+                0x8001da9a                S2_Escient_FireBall_SIMPL__v6_0_3_CACHEDATA_Destructor
+                0x8001ae22                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00022
+                0x8001daa4                S2_Escient_FireBall_SIMPL__v6_0_3MESSAGESUB
+                0x80017a46                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0000A
+                0x8001da70                S2_Escient_FireBall_SIMPL__v6_0_3_ESCDATA_Destructor
+                0x8001e414                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0001C
+                0x8001a198                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00015
+                0x8001725e                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00006
+                0x8001e5ae                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00020
+                0x8001df6a                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0000C
+                0x80017124                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00005
+                0x80016896                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00000
+                0x8001e234                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00018
+                0x8001bc98                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0002B
+                0x800199d4                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00013
+                0x8001e92c                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00028
+                0x8001e094                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0000E
+                0x8001db88                S2_Escient_FireBall_SIMPL__v6_0_3__SPLS_TMPVAR__WAITLABEL_2__
+                0x8001e71a                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00023
+                0x80017c32                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00010
+                0x800178b8                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00009
+                0x8001a77e                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0001D
+                0x8001e1b6                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00016
+                0x800174c4                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00007
+                0x8001e822                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00025
+                0x8001e3ba                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0001B
+                0x8001bb76                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0002A
+                0x8001c4be                S2_Escient_FireBall_SIMPL__v6_0_3_EventHandler
+                0x8001e560                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0001F
+                0x8001e318                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00019
+                0x80016ea8                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00001
+                0x8001c63e                S2_Escient_FireBall_SIMPL__v6_0_3_main
+                0x800181bc                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00011
+                0x8001e986                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00029
+                0x8001dd6a                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00003
+                0x8001e87a                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler00026
+                0x8001dfec                S2_Escient_FireBall_SIMPL__v6_0_3EventHandler0000D
+ .text          0x8001e9e0     0x432c S2_Escient_FireBall_Crosspoint_Manager_v6_0_3.o
+                0x800200ae                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_36__
+                0x800200fa                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_37__
+                0x80020a50                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00001
+                0x80020ca8                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00003
+                0x8001fb3e                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_20__
+                0x8001f472                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_0__
+                0x8001f56c                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_3__
+                0x8002015c                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_38__
+                0x800202b8                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_42__
+                0x8001fef0                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_31__
+                0x80021ab8                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler0000F
+                0x8002102c                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00006
+                0x8001f0f2                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3_main
+                0x8001ff52                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_32__
+                0x8001eea8                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3_EventHandler
+                0x800214dc                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler0000A
+                0x8001f8d2                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_13__
+                0x80020460                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_47__
+                0x8001ff9e                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_33__
+                0x8001f6c8                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_7__
+                0x8001f67c                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_6__
+                0x80022670                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00019
+                0x8001f776                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_9__
+                0x8002050e                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_49__
+                0x80022418                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00017
+                0x8001fc9a                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_24__
+                0x8001f520                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_2__
+                0x80021860                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler0000D
+                0x8001fea4                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_30__
+                0x800228c8                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler0001B
+                0x8002279c                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler0001A
+                0x80021e3c                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00012
+                0x80020718                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_55__
+                0x80020f00                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00005
+                0x80021284                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00008
+                0x8001f72a                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_8__
+                0x80021be4                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00010
+                0x80020924                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00000
+                0x80021608                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler0000B
+                0x80020b7c                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00002
+                0x80020570                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_50__
+                0x8001fe42                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_29__
+                0x8001f61a                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_5__
+                0x80022c4c                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler0001E
+                0x8001fb8a                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_21__
+                0x8001f980                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_15__
+                0x8001fadc                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_19__
+                0x80022094                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00014
+                0x800205bc                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_51__
+                0x80020874                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_59__
+                0x8001f7d8                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_10__
+                0x8001fce6                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_25__
+                0x8002077a                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_56__
+                0x800229f4                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler0001C
+                0x800222ec                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00016
+                0x8001fdf6                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_28__
+                0x8002004c                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_35__
+                0x8001fd48                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_26__
+                0x8002061e                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_52__
+                0x8001fa2e                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_17__
+                0x800213b0                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00009
+                0x80021158                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00007
+                0x80021d10                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00011
+                0x8001f934                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_14__
+                0x8001f824                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_11__
+                0x8001f886                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_12__
+                0x800201a8                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_39__
+                0x80021734                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler0000C
+                0x80020366                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_44__
+                0x8001fbec                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_22__
+                0x8001f9e2                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_16__
+                0x800207c6                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_57__
+                0x80022b20                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler0001D
+                0x8001fc38                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_23__
+                0x8001f5ce                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_4__
+                0x800204c2                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_48__
+                0x80020304                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_43__
+                0x800208d6                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_60__
+                0x8002066a                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_53__
+                0x8001f4be                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_1__
+                0x8002198c                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler0000E
+                0x800206cc                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_54__
+                0x8001fa90                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_18__
+                0x80022544                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00018
+                0x8001fd94                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_27__
+                0x80020000                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_34__
+                0x800221c0                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00015
+                0x80021f68                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00013
+                0x80020828                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_58__
+                0x8002020a                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_40__
+                0x800203b2                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_45__
+                0x80020414                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_46__
+                0x80020dd4                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3EventHandler00004
+                0x80020256                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3__SPLS_TMPVAR__WAITLABEL_41__
+ .text          0x80022d0c    0x1c650 S2_Escient_FireBall_Text_Processor_v5_0_2.o
+                0x8002d5a2                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00032
+                0x8003e606                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00008
+                0x8002b292                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0002C
+                0x8003e30c                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00002
+                0x8003f16e                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0002B
+                0x80028562                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00013
+                0x8003e938                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00019
+                0x8003e86c                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00014
+                0x8003ef82                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00026
+                0x80027ada                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0000E
+                0x800273ec                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0000D
+                0x8002cff2                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00030
+                0x8003f1ea                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00033
+                0x8003ed26                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00021
+                0x8003f304                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00035
+                0x8002d2c4                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00031
+                0x8003f0a0                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00029
+                0x8003e98c                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0001A
+                0x8003ee44                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00024
+                0x8003e286                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00001
+                0x8003f0f6                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0002A
+                0x8002c088                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0002D
+                0x80028e96                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00016
+                0x80028fea                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00018
+                0x8003e392                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00003
+                0x8002840e                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00011
+                0x8003ebe8                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0001F
+                0x800297f2                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0001D
+                0x8003eaca                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0001C
+                0x8003ca1c                S2_Escient_FireBall_Text_Processor_v5_0_2_EventHandler
+                0x8003f04c                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00028
+                0x8002c8a0                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0002F
+                0x8003e552                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00006
+                0x80027298                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0000A
+                0x8003e6d2                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0000C
+                0x8003e7a0                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0000F
+                0x8002da1a                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00034
+                0x80029f48                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00022
+                0x800254f6                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00007
+                0x8003e7f4                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00012
+                0x8002716c                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00009
+                0x8003edf0                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00023
+                0x8003e202                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00000
+                0x8003e002                S2_Escient_FireBall_Text_Processor_v5_0_2__SPLS_TMPVAR__WAITLABEL_0__
+                0x80028d6a                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00015
+                0x800282e2                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00010
+                0x8003ea3e                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0001B
+                0x8003e8c0                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00017
+                0x8003e418                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00004
+                0x8003eef6                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00025
+                0x8003eb94                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0001E
+                0x8002aabe                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00027
+                0x8003ec9a                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00020
+                0x8002c3c0                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0002E
+                0x8003cb10                S2_Escient_FireBall_Text_Processor_v5_0_2_main
+                0x8003e4cc                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00005
+                0x8003e102                S2_Escient_FireBall_Text_Processor_v5_0_2__SPLS_TMPVAR__WAITLABEL_1__
+                0x8003e65a                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler0000B
+                0x8003c2ba                S2_Escient_FireBall_Text_Processor_v5_0_2EventHandler00036
+ .text          0x8003f35c      0x5ce S2_Keyboard_Text_Processor.o
+                0x8003f656                S2_Keyboard_Text_Processor_main
+                0x8003f494                S2_Keyboard_Text_ProcessorEventHandler00002
+                0x8003f35c                S2_Keyboard_Text_ProcessorEventHandler00000
+                0x8003f82e                S2_Keyboard_Text_ProcessorEventHandler00001
+                0x8003f7a4                S2_Keyboard_Text_Processor_EventHandler
+ *fill*         0x8003f92a        0x2
+ .text          0x8003f92c      0x71c S2_tstat_temp_display.o
+                0x8003fa30                S2_tstat_temp_displayEventHandler00000
+                0x8003fe20                S2_tstat_temp_display_EventHandler
+                0x8003fec8                S2_tstat_temp_display_main
+ .text          0x80040048    0x11e16 S2_tstat_sch_2_1.o
+                0x800518a2                S2_tstat_sch_2_1EventHandler00014
+                0x80048e28                S2_tstat_sch_2_1EventHandler00011
+                0x80051ce8                S2_tstat_sch_2_1EventHandler0001F
+                0x8004740c                S2_tstat_sch_2_1EventHandler00009
+                0x80051442                S2_tstat_sch_2_1EventHandler00004
+                0x80047b98                S2_tstat_sch_2_1EventHandler0000B
+                0x80050f9c                S2_tstat_sch_2_1_SCHEDULE_Destructor
+                0x80051c5c                S2_tstat_sch_2_1EventHandler0001E
+                0x80051bd4                S2_tstat_sch_2_1EventHandler0001C
+                0x800492ce                S2_tstat_sch_2_1EventHandler00012
+                0x8005195a                S2_tstat_sch_2_1EventHandler00015
+                0x80051672                S2_tstat_sch_2_1EventHandler00006
+                0x80051d92                S2_tstat_sch_2_1EventHandler00020
+                0x80047eb4                S2_tstat_sch_2_1EventHandler0000D
+                0x80050fa6                S2_tstat_sch_2_1WAIT_SAVE
+                0x80049c1c                S2_tstat_sch_2_1EventHandler00016
+                0x80050f74                S2_tstat_sch_2_1_SCHEDULE_Constructor
+                0x800510fa                S2_tstat_sch_2_1EventHandler00001
+                0x80049776                S2_tstat_sch_2_1EventHandler00013
+                0x80048980                S2_tstat_sch_2_1EventHandler00010
+                0x8004a168                S2_tstat_sch_2_1EventHandler00018
+                0x8004b960                S2_tstat_sch_2_1SBA_WAIT_2
+                0x8005178a                S2_tstat_sch_2_1EventHandler00007
+                0x80046ea6                S2_tstat_sch_2_1EventHandler00008
+                0x80050fe4                S2_tstat_sch_2_1EventHandler00000
+                0x8004d3f8                S2_tstat_sch_2_1EventHandler00022
+                0x800519dc                S2_tstat_sch_2_1EventHandler00017
+                0x8004baf6                S2_tstat_sch_2_1EventHandler0001D
+                0x80047d00                S2_tstat_sch_2_1EventHandler0000C
+                0x8005132a                S2_tstat_sch_2_1EventHandler00003
+                0x8004d720                S2_tstat_sch_2_1EventHandler00024
+                0x8004d58c                S2_tstat_sch_2_1EventHandler00023
+                0x80048096                S2_tstat_sch_2_1EventHandler0000E
+                0x8004b728                S2_tstat_sch_2_1SBA_WAIT_1
+                0x80051212                S2_tstat_sch_2_1EventHandler00002
+                0x8004a38a                S2_tstat_sch_2_1EventHandler0001B
+                0x8004de92                S2_tstat_sch_2_1_EventHandler
+                0x80051a18                S2_tstat_sch_2_1EventHandler00019
+                0x8004850c                S2_tstat_sch_2_1EventHandler0000F
+                0x80047a68                S2_tstat_sch_2_1EventHandler0000A
+                0x80051afc                S2_tstat_sch_2_1EventHandler0001A
+                0x8004d262                S2_tstat_sch_2_1EventHandler00021
+                0x8004df94                S2_tstat_sch_2_1_main
+                0x8005155a                S2_tstat_sch_2_1EventHandler00005
+ *fill*         0x80051e5e        0x2
+ .text          0x80051e60     0x5836 library.o
+                0x8005604c                RotateRightLong
+                0x8005665a                IsSystem
+                0x80055fb0                Seed
+                0x800538a8                Remove
+                0x80055c2c                Ltoa
+                0x80055958                Atoi
+                0x80054cc0                InitRampInfoArray
+                0x80056406                Right
+                0x80057436                LockInputSema
+                0x80055eda                Mod
+                0x800560c2                Getc
+                0x80055e0e                SMuldiv
+                0x8005663c                IsHidden
+                0x80055cf2                Min
+                0x8005724a                hextosi
+                0x800567e0                WriteIntegerArray
+                0x80056d56                GetSignedIntArrayElementPtr
+                0x8005567a                CheckStructArray
+                0x8005725e                hextosl
+                0x80056966                WriteSignedIntegerArray
+                0x80055342                InitStringParamArray
+                0x80054614                ReadSignedLongIntegerArray
+                0x80053536                GatherToDelimiter
+                0x80055166                InitStringArray
+                0x80055ccc                Max
+                0x80056696                IsReadOnly
+                0x80055dd6                SMax
+                0x800536da                GatherByLength
+                0x80055b66                Chr
+                0x800567b8                ReadSignedLongInteger
+                0x80055be4                Itohex
+                0x800555ec                GetStructArrayElement
+                0x800558e0                UNS_SetByte
+                0x800563da                ReverseFindi
+                0x80054abc                ReadStringArray
+                0x80056b66                GetIntArrayElementPtr
+                0x80056216                Lower
+                0x80055fcc                RotateLeft
+                0x8005737e                ResizeIfAutogrow
+                0x80054dec                CheckInputArray
+                0x800523ce                ResizeStringArray
+                0x80055af8                Atosl
+                0x80055920                High
+                0x80055f7c                Rnd
+                0x80055e9e                UMod
+                0x80056022                RotateLeftLong
+                0x800574aa                FindNumericChar
+                0x80056fae                CheckIOArrayBounds2
+                0x800565f4                MakeProgramFilename
+                0x80055df2                SMin
+                0x8005614a                Left
+                0x8005608c                CheckBufferThreshold
+                0x80056770                ReadSignedInteger
+                0x8005594a                LowWord
+                0x80051e60                Bit
+                0x80056720                ReadLongInteger
+                0x8005575e                Byte
+                0x80056c5e                GetLongArrayElementPtr
+                0x800563ac                ReverseFind
+                0x8005660a                GetSeries
+                0x80057576                InitTcpServer
+                0x800561fe                Len
+                0x8005707e                InitializeRampInfoInternal
+                0x80055d18                Divide
+                0x80055a64                Atol
+                0x80056600                GetModelNumber
+                0x80056f46                CheckIOArrayBounds
+                0x80054e46                CheckStringInputArray
+                0x80056a28                WriteSignedLongIntegerArray
+                0x80055536                GetStringArrayElement
+                0x80055c70                Ltohex
+                0x80055b9c                Itoa
+                0x80055ff6                RotateRight
+                0x80053b96                InternalReverseFind
+                0x80056700                WriteLongInteger
+                0x8005506a                InitDynamicStringStruct
+                0x80054f5c                SetStringArray
+                0x800543f2                ReadSignedIntegerArray
+                0x80054ea0                SetOutputArray
+                0x800566b0                WriteInteger
+                0x800554ca                InitStructDynamicArray
+                0x80053e20                SetString
+                0x80055f16                Random
+                0x80056748                WriteSignedInteger
+                0x800520c4                Find
+                0x80056614                GetProgramNumber
+                0x800562ea                Mid
+                0x800574e8                InitTcpClient
+                0x80052fb2                ResizeStructArray
+                0x80056e4e                GetSignedLongArrayElementPtr
+                0x80057270                hextol
+                0x80054836                ReadString
+                0x800551fc                InitDynamicStringArray
+                0x80057356                UpperChar
+                0x800559f4                Atosi
+                0x800566d8                ReadInteger
+                0x80055d8a                Muldiv
+                0x80054f0e                SetStringOutputArray
+                0x80056aec                WriteString
+                0x80052a26                ResizeIntegerArray
+                0x80054db4                InitInOutArray
+                0x8005540a                InitNvramStringArray
+                0x80055cb4                Abs
+                0x80055e5a                SDivide
+                0x80053fb0                ReadIntegerArray
+                0x80051f70                CompareStrings
+                0x8005732e                LowerChar
+                0x80057606                InitUdpSocket
+                0x80056074                ClearBuffer
+                0x800564c2                Upper
+                0x800554a6                InitStructArray
+                0x80056598                MakeLower
+                0x80056678                IsVolume
+                0x80053a02                RemoveByLength
+                0x800556f6                CheckStringOutputArrayIndex
+                0x800568a2                WriteLongIntegerArray
+                0x8005712a                InitRampInfoStructArray
+                0x8005593c                HighWord
+                0x80052238                ResizeString
+                0x8005661e                IsDirectory
+                0x800541d0                ReadLongIntegerArray
+                0x8005592e                Low
+                0x800533dc                Gather
+                0x800565c6                MakeUpper
+                0x8005502c                InitStringStruct
+                0x80057016                CheckStringArrayBounds
+                0x80055d5c                CheckDenominator
+                0x80057232                hextoi
+                0x80054954                WriteStringArray
+                0x8005581e                SetByte
+                0x800570d4                InitializeRampInfo
+                0x80057470                UnLockInputSema
+                0x80056798                WriteSignedLongInteger
+                0x8005511e                InitNvramStringStruct
+ *fill*         0x80057696        0xa
+                0x800576a0                .=ALIGN(0x10)
+ *(.eh_frame)
+                0x800576a0                .=ALIGN(0x10)
+ *(.gnu.linkonce.t.*)
+                0x800576a0                .=ALIGN(0x4)
+                0x800576a0                __CTOR_LIST__=.
+                0x800576a0                ___CTOR_LIST__=.
+                0x800576a0        0x4 LONG 0x0 (((__CTOR_END__-__CTOR_LIST__)/0x4)-0x2)
+ *(.ctors)
+                0x800576a4        0x4 LONG 0x0
+                0x800576a8                __CTOR_END__=.
+                0x800576a8                __DTOR_LIST__=.
+                0x800576a8                ___DTOR_LIST__=.
+                0x800576a8        0x4 LONG 0x0 (((__DTOR_END__-__DTOR_LIST__)/0x4)-0x2)
+ *(.dtors)
+                0x800576ac        0x4 LONG 0x0
+                0x800576b0                __DTOR_END__=.
+ *(.rodata)
+ .rodata        0x800576b0     0x154e S2_Escient_FireBall_SIMPL__v6_0_3.o
+ .rodata        0x80058bfe      0xb86 S2_Escient_FireBall_Crosspoint_Manager_v6_0_3.o
+ .rodata        0x80059784      0xd05 S2_Escient_FireBall_Text_Processor_v5_0_2.o
+ .rodata        0x8005a489      0x29c S2_Keyboard_Text_Processor.o
+ .rodata        0x8005a725      0x2cd S2_tstat_temp_display.o
+ .rodata        0x8005a9f2      0x88a S2_tstat_sch_2_1.o
+ .rodata        0x8005b27c      0xc54 library.o
+ *(.gcc_except_table)
+                0x8005bed0                .=ALIGN(0x2)
+                0x8005bed0                __INIT_SECTION__=.
+                0x8005bed0        0x4 LONG 0x4e560000
+ *(.init)
+                0x8005bed4        0x2 SHORT 0x4e5e
+                0x8005bed6        0x2 SHORT 0x4e75
+                0x8005bed8                __FINI_SECTION__=.
+                0x8005bed8        0x4 LONG 0x4e560000
+ *(.fini)
+                0x8005bedc        0x2 SHORT 0x4e5e
+                0x8005bede        0x2 SHORT 0x4e75
+ *(.lit)
+                0x8005bee0                .=ALIGN(0x10)
+                0x8005bee0                _etext=.
+                0x8005bee0                etext=.
+
+.data           0x8005bee0        0x0
+                0x8005bee0                copy_start=.
+ *(.shdata)
+ *(.data)
+ *(.gnu.linkonce.d.*)
+                0x8005bee0                .=ALIGN(0x10)
+                0x8005bee0                _edata=.
+                0x8005bee0                copy_end=.
+
+.got
+ *(.got.plt)
+ *(.got)
+
+EntryList       0x8005bee0      0x660
+ *(EntryList)
+ EntryList      0x8005bee0      0x110 S2_Escient_FireBall_SIMPL__v6_0_3.o
+                0x8005bee0                S2_Escient_FireBall_SIMPL__v6_0_3_Entry
+ EntryList      0x8005bff0      0x110 S2_Escient_FireBall_Crosspoint_Manager_v6_0_3.o
+                0x8005bff0                S2_Escient_FireBall_Crosspoint_Manager_v6_0_3_Entry
+ EntryList      0x8005c100      0x110 S2_Escient_FireBall_Text_Processor_v5_0_2.o
+                0x8005c100                S2_Escient_FireBall_Text_Processor_v5_0_2_Entry
+ EntryList      0x8005c210      0x110 S2_Keyboard_Text_Processor.o
+                0x8005c210                S2_Keyboard_Text_Processor_Entry
+ EntryList      0x8005c320      0x110 S2_tstat_temp_display.o
+                0x8005c320                S2_tstat_temp_display_Entry
+ EntryList      0x8005c430      0x110 S2_tstat_sch_2_1.o
+                0x8005c430                S2_tstat_sch_2_1_Entry
+                0x8005c540                .=ALIGN(0x4)
+
+FunctionList    0x8005c540        0x4
+ *(FunctionList)
+ FunctionList   0x8005c540        0x4 globals.o
+                0x8005c540                g_pFunctions
+                0x8005c544                .=ALIGN(0x4)
+
+.bss            0x8005c544        0x0
+                0x8005c544                .=ALIGN(0x4)
+                0x8005c544                __bss_start=.
+ *(.shbss)
+ *(.bss)
+ *(COMMON)
+                0x8005c548                _end=ALIGN(0x8)
+                0x8005c548                __end=_end
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges
+ *(.debug_aranges)
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info
+ *(.debug_info)
+
+.debug_abbrev
+ *(.debug_abbrev)
+
+.debug_line
+ *(.debug_line)
+
+.debug_frame
+ *(.debug_frame)
+
+.debug_str
+ *(.debug_str)
+
+.debug_loc
+ *(.debug_loc)
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+LOAD S2_Escient_FireBall_SIMPL__v6_0_3.o
+LOAD S2_Escient_FireBall_Crosspoint_Manager_v6_0_3.o
+LOAD S2_Escient_FireBall_Text_Processor_v5_0_2.o
+LOAD S2_Keyboard_Text_Processor.o
+LOAD S2_tstat_temp_display.o
+LOAD S2_tstat_sch_2_1.o
+LOAD globals.o
+LOAD library.o
+OUTPUT(_S2_Dao_Khoi_2017_11_10.spl elf32-m68k)
+
+.comment        0x8005c544      0x130
+ .comment       0x8005c544       0x26 S2_Escient_FireBall_SIMPL__v6_0_3.o
+ .comment       0x8005c56a       0x26 S2_Escient_FireBall_Crosspoint_Manager_v6_0_3.o
+ .comment       0x8005c590       0x26 S2_Escient_FireBall_Text_Processor_v5_0_2.o
+ .comment       0x8005c5b6       0x26 S2_Keyboard_Text_Processor.o
+ .comment       0x8005c5dc       0x26 S2_tstat_temp_display.o
+ .comment       0x8005c602       0x26 S2_tstat_sch_2_1.o
+ .comment       0x8005c628       0x26 globals.o
+ .comment       0x8005c64e       0x26 library.o

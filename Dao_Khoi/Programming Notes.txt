@@ -1,0 +1,6 @@
+Dr Dao service call notes
+
+2018.6.14
+- the kids bedroom tstat was offline found the power supply had an ovrload message. reset the output and tstat returned to normal operation
+- changed a couple things on living room touch panel (removed a source and added a schedule for climate when retuning home
+- the front porch was not running on schdule i found the chronos could not communiate with dimmer due to a metal box placed in front

@@ -1,0 +1,89 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name: Crestron Electronics
+System Name:
+System Number:
+Programmer: CRR
+Comments:
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+#SYMBOL_NAME "Lutron RadioRA Processor"
+// #HINT ""
+#DEFINE_CONSTANT RAMPUP 1
+#DEFINE_CONSTANT RAMPDOWN 2
+#DEFINE_CONSTANT RAMPSTOP 0
+
+// #CATEGORY "" 
+// #DEFAULT_VOLATILE
+#DEFAULT_NONVOLATILE
+#ENABLE_STACK_CHECKING
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+
+ANALOG_INPUT System; 
+STRING_INPUT Keypad$[2];
+BUFFER_INPUT FromDevice$[255]; 
+
+ANALOG_OUTPUT KeyPressed, KeyRamp[15]; 
+
+INTEGER Semaphore, SystemIn, Station; 
+STRING Tempstring$[20], Command$[3];
+
+
+CHANGE Keypad$
+	{
+	Station = atoi(Keypad$);
+	}           
+ 
+CHANGE FromDevice$
+	{
+	if(Semaphore = 0)
+		{
+		Semaphore = 1;
+		while(find("\x0D", FromDevice$) > 0)
+			{
+			Tempstring$ = remove("\x0D", FromDevice$);
+			Command$ = left(Tempstring$, 3);
+			if(Right(Tempstring$, 3) = "S2\x0D")
+				SystemIn = 2;
+			else
+				SystemIn = 1;
+			if(SystemIn = System)
+				{
+				if(atoi(mid(Tempstring$, 5, 2)) = Station)
+					{
+					if(Command$ = "MBP")
+						{
+						KeyPressed = atoi(mid(Tempstring$, 8, 2));
+						processlogic();
+						KeyPressed = 0;
+						}
+					else if(Command$ = "RBP")
+						KeyRamp[atoi(mid(Tempstring$, 8, 2))] = RAMPUP;
+					else if(Command$ = "RBR")
+						KeyRamp[atoi(mid(Tempstring$, 8, 2))] = RAMPSTOP;
+					else if(Command$ = "LBP")
+						KeyRamp[atoi(mid(Tempstring$, 8, 2))] = RAMPDOWN;
+					else if(Command$ = "LBR")
+						KeyRamp[atoi(mid(Tempstring$, 8, 2))] = RAMPSTOP;
+					}
+				}
+			}
+		Semaphore = 0;
+		}
+	}					
+	
+Function Main()
+	{
+	Semaphore = 0;
+	}

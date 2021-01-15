@@ -1,0 +1,360 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+*******************************************************************************************/
+/*
+Manufacturer Name: Escient
+System Name:FireBall
+Module Version: v6.0
+Programmer: Chris Commons and Brian Meak
+Comments: All FireBall Models with software v4.2 or greater                                   
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+#SYMBOL_NAME "Escient FireBall Crosspoint Manager v6.0.3"
+#HINT "Escient FireBall Crosspoint Manager v6.0.3"
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+                 
+#DEFINE_CONSTANT iFBCount 5
+#DEFINE_CONSTANT iTPCount 30
+
+
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+
+DIGITAL_INPUT FBConnect_TP01[iFBCount];
+DIGITAL_INPUT FBConnect_TP02[iFBCount];
+DIGITAL_INPUT FBConnect_TP03[iFBCount];
+DIGITAL_INPUT FBConnect_TP04[iFBCount];
+DIGITAL_INPUT FBConnect_TP05[iFBCount];
+DIGITAL_INPUT FBConnect_TP06[iFBCount];
+DIGITAL_INPUT FBConnect_TP07[iFBCount];
+DIGITAL_INPUT FBConnect_TP08[iFBCount];
+DIGITAL_INPUT FBConnect_TP09[iFBCount];
+DIGITAL_INPUT FBConnect_TP10[iFBCount];
+DIGITAL_INPUT FBConnect_TP11[iFBCount];
+DIGITAL_INPUT FBConnect_TP12[iFBCount];
+DIGITAL_INPUT FBConnect_TP13[iFBCount];
+DIGITAL_INPUT FBConnect_TP14[iFBCount];
+DIGITAL_INPUT FBConnect_TP15[iFBCount];
+DIGITAL_INPUT FBConnect_TP16[iFBCount];
+DIGITAL_INPUT FBConnect_TP17[iFBCount];
+DIGITAL_INPUT FBConnect_TP18[iFBCount];
+DIGITAL_INPUT FBConnect_TP19[iFBCount];
+DIGITAL_INPUT FBConnect_TP20[iFBCount];
+DIGITAL_INPUT FBConnect_TP21[iFBCount];
+DIGITAL_INPUT FBConnect_TP22[iFBCount];
+DIGITAL_INPUT FBConnect_TP23[iFBCount];
+DIGITAL_INPUT FBConnect_TP24[iFBCount];
+DIGITAL_INPUT FBConnect_TP25[iFBCount];
+DIGITAL_INPUT FBConnect_TP26[iFBCount];
+DIGITAL_INPUT FBConnect_TP27[iFBCount];
+DIGITAL_INPUT FBConnect_TP28[iFBCount];
+DIGITAL_INPUT FBConnect_TP29[iFBCount];
+DIGITAL_INPUT FBConnect_TP30[iFBCount];
+
+DIGITAL_INPUT FBDisconnect_TP[iTPCount];
+
+ANALOG_INPUT FBEquipmentIDs[iFBCount];
+ANALOG_INPUT FBControlIDs[iTPCount];
+
+DIGITAL_OUTPUT FBConnect, FBDisconnect;
+DIGITAL_OUTPUT FBUpdate[iFBCount];
+ANALOG_OUTPUT FBEquipmentID, FBControlID;
+
+INTEGER iTemp;
+
+/*******************************************************************************************
+  Event Handlers
+  (Uncomment and declare additional event handlers as needed)
+*******************************************************************************************/
+
+PUSH FBConnect_TP01
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[1]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP02
+	{                                   
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[2]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP03
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[3]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP04
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[4]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP05
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[5]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP06
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[6]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP07
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[7]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP08
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[8]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP09
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[9]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP10
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[10]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP11
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[11]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP12
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[12]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP13
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[13]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP14
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[14]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP15
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[15]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP16
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[16]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP17
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[175]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP18
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[18]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP19
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[19]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP20
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[20]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP21
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[21]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP22
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[22]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP23
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[23]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP24
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[24]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP25
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[25]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP26
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[26]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP27
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[27]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP28
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[28]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP29
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[29]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBConnect_TP30
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBEquipmentID = FBEquipmentIDs[iTemp];
+	FBControlID = FBControlIDs[30]; 
+	WAIT (1) PULSE (5, FBConnect);
+	WAIT (10) PULSE (5, FBUpdate[iTemp]);
+	}
+
+PUSH FBDisconnect_TP
+	{
+	iTemp =  GetLastModifiedArrayIndex();
+	FBControlID = FBControlIDs[iTemp]; 
+	WAIT (1) PULSE (5, FBDisconnect);
+	}
+
+/*******************************************************************************************
+  Main()
+*******************************************************************************************/
+Function Main()
+{
+}
+

@@ -1,0 +1,655 @@
+#DEFINE_CONSTANT LIBRARY_VERSION "1.5" //Kaleidescape library version.
+
+//Useful characters that we'll use in the parsing code
+#DEFINE_CONSTANT CR 0x0D		 	// Carriage return
+#DEFINE_CONSTANT LF 0x0A		 	// Linefeed
+#DEFINE_CONSTANT TAB 0x09		 	// Tab
+#DEFINE_CONSTANT BACKSLASH '/'   	// /
+#DEFINE_CONSTANT ESCSLASH  '\\'	 	// \
+#DEFINE_CONSTANT DOUBLE_QUOTE "\""	// "
+
+#DEFINE_CONSTANT MAX_INT 65535
+
+#DEFINE_CONSTANT MAX_MESSAGE_LENGTH	2048	//Used to initialize various arrays
+#DEFINE_CONSTANT INPUT_BUFFER_LENGTH 8192	//8K
+#DEFINE_CONSTANT MAX_RESPONSE_ARGS  15		//Number or arguments to account for in the player 
+											//response
+#DEFINE_CONSTANT MAX_RESPONSE_ARG_LEN 200  	//Maximum length of a single argument
+
+#DEFINE_CONSTANT APPEND_TEXT_1 "\xFE\x01"	//Used to append text displayed on a TP, with a newline
+#DEFINE_CONSTANT APPEND_TEXT_2 "\xFE\x02"	//Same as 1, but without a newline
+											//Note these only work on TPS panels and later
+
+//Function to return the library version.
+STRING_FUNCTION getLibraryVersion()
+{
+	return(LIBRARY_VERSION);
+}
+
+// Function to determine if a given integer is an upper case letter
+INTEGER_FUNCTION isUpperLetter(INTEGER character)
+{
+	return (character >= 'A' && character <= 'Z');
+}
+
+// Function to determine if a given integer is an lower case letter
+INTEGER_FUNCTION isLowerLetter(INTEGER character)
+{
+	return (character >= 'a' && character <= 'z');
+}
+
+// Function to determine if a given integer is a valid letter
+INTEGER_FUNCTION isLetter(INTEGER character)
+{
+	return (isUpperLetter(character) || isLowerLetter(character));
+}
+
+// Function to determine if a given integer is a valid digit
+INTEGER_FUNCTION isDigit(INTEGER character)
+{
+    return (character >= '0' && character <='9');
+}
+
+// Function to determine if a given integer is a valid Hex digit
+INTEGER_FUNCTION isHex(INTEGER character)	
+{
+    return(  isDigit(character) || ( character >= 'A' && character <= 'F' )  );
+}
+
+// Function to determine if a given integer is a valid sequence number
+INTEGER_FUNCTION isSequence(INTEGER character)
+{
+    return( isDigit(character) || character = '!' || character = '?' );
+}
+
+// Function to convert a single char to upper
+INTEGER_FUNCTION toUpper(INTEGER character)
+{
+	if( isLowerLetter(character) ) return(character + 'A' - 'a');
+	return(character); //if not a lower case letter, return unchanged
+}
+
+// Function to convert a single char to lower
+INTEGER_FUNCTION toLower(INTEGER character)	
+{
+	if( isUpperLetter(character) ) return(character + 'a' - 'A');
+	return(character); //if not an upper case letter, return unchanged
+}
+
+// General purpose function to remove the right-most characters from a string
+STRING_FUNCTION shaveRightCharacter(STRING inputString, INTEGER numToRemove)
+{
+	if(len(inputString) > numToRemove) return(left(inputString, len(inputString) - numToRemove));
+	return("");
+}
+
+// Function to convert a string to title caps
+STRING_FUNCTION toTitleCaps(STRING inputString)
+{
+	INTEGER loop;
+	INTEGER character;
+	INTEGER inWord;
+	STRING 	outputString[MAX_MESSAGE_LENGTH];
+	
+	inWord = OFF;
+	
+	for(loop = 1 to len(inputString)) //step through every character of inputString
+	{
+		character = byte(inputString, loop); //extract it
+		if(isLetter(character)) //check if it's a letter
+		{
+			if(inWord) //if we're already in a word
+			{
+				//set the letter to lower case
+				outputString = outputString + chr(toLower(character));
+			}
+			else //if we're not (beginning of the word)
+			{
+				//set the letter to upper case (beginning of word)
+				outputString=outputString+chr(toUpper(character));
+			}
+			inWord = ON;
+		}
+		else //if it's not a letter
+		{
+			outputString = outputString + chr(character); //just copy verbatum
+			inWord = OFF; //note that we're no longer in a word
+		}
+	}
+	return(outputString);
+}
+
+// Much less expensive way to append a char with title caps
+STRING_FUNCTION appendTitleCaps(STRING inputString, STRING appendString)
+{
+	INTEGER stringLength;
+	STRING 	outputString[MAX_MESSAGE_LENGTH];
+
+	stringLength = len(inputString);
+	
+	//if there is a previous char and the previous char is a letter...
+	if( stringLength > 0 &&	isLetter(byte(inputString, stringLength)) )
+	{
+		outputString = inputString + lower(appendString); //make new char lower case			
+	}
+	else //if no previous char, or previous is not a char
+	{
+		outputString = inputString + upper(appendString); //make new char upper case
+	}
+		
+	return(outputString);
+}
+
+// function to properly escape an arbritrary string
+STRING_FUNCTION escape(STRING inputString)
+{						
+	INTEGER loop;
+	INTEGER character;
+	STRING 	outputString[MAX_MESSAGE_LENGTH];
+	
+	for(loop = 1 to len(inputString)) //step through every character of inputString
+	{
+		character = byte(inputString, loop); //extract it
+		cSwitch(character) //examine it
+		{
+			case (':')		: 
+			case (BACKSLASH): 
+			//escape all of the above
+			case (ESCSLASH)	: outputString = outputString + chr(ESCSLASH);  
+			default			: outputString = outputString + chr(character); //append the character
+		}
+	}
+	return(outputString);
+}
+
+//function to substitute any char for any other
+STRING_FUNCTION substitute(STRING inputString, INTEGER characterToReplace, 
+							  STRING replacementString)
+{
+	INTEGER loop;
+	INTEGER character;
+	INTEGER inputLength;
+	INTEGER replacementLength;
+	INTEGER outputPosition;
+	STRING 	outputString[MAX_MESSAGE_LENGTH];
+	
+	outputString = "";
+	inputLength = len(inputString);
+	replacementLength = len(replacementString);
+	outputPosition = 1;
+	for(loop = 1 to inputLength) //step through every character of inputString
+	{
+		character = byte(inputString, loop); //extract it
+		switch(character) //examine it
+		{
+			case (characterToReplace):
+			{
+				setString(replacementString, outputPosition, outputString);
+				outputPosition = outputPosition + replacementLength;
+			}
+			default:
+			{
+				setString(chr(character), outputPosition, outputString);//append the character
+				outputPosition = outputPosition + 1;
+			}
+		}
+	}
+	return(outputString);	
+}
+
+// function to provide a space if the given string is null (for proper TP display)
+STRING_FUNCTION nullToSpace(STRING inputString)
+{
+	if(len(inputString) > 0) return (inputString); //if the string isn't null, just return it.
+	return(" "); //otherwise, return a space
+}
+
+//This function is used to handle operations that require NAT.
+STRING_FUNCTION processNAT(STRING givenURL, STRING hostIP)
+{
+	STRING URI[500];
+	STRING host[50];
+	STRING junk[10];
+
+	URI = givenURL;
+
+	junk = remove("//", URI, 1); //remove the http://
+    host = remove("/", URI, 1); //pull out the host name   
+    
+    URI = "http://" + hostIP + "/" + URI;
+    
+    return(URI);
+}
+
+/*
+ * This function verifies that the incoming message is for the specified device.
+ * Returns 0 if invalid message, 1 otherwise
+ */
+INTEGER_FUNCTION isTargetMessage(INTEGER messageDeviceId, INTEGER messageZoneId, INTEGER messageSequence,
+								INTEGER targetDeviceId, INTEGER targetZoneId, INTEGER targetSequence,
+								INTEGER directConnect, INTEGER debug)
+{		         
+    // Check that this response is from the device we want to talk to.
+   	if(messageDeviceId != targetDeviceId)
+   	{
+   		if(directConnect = OFF || (directConnect = ON && messageDeviceId != 1))
+   		{
+	    	if(debug) print("Ignoring Address: %d   (My Address is %d.)\n", messageDeviceId, targetDeviceId);
+    		return(0); //indicate that the message is not OK (not addressed to us)
+    	}
+    }	
+      
+    if(messageZoneId != targetZoneId && messageZoneId > 0)
+    {
+    	if(debug) print("Ignoring Zone ID: %d   (My Zone ID is %d)\n", messageZoneId, targetZoneId);
+		return(0);
+    }    
+   		   		    
+    if(messageSequence != '!' && messageSequence != '?') //if the message sequence is a digit
+    {
+    	if(messageSequence - '0' != targetSequence) //if the sequence doesn't match
+    	{
+    		if(debug)
+    		{
+    			print("Bad Sequence: %c  Looking for: %c\n", messageSequence, targetSequence);
+    		}
+    		return(0);
+    	}
+    }
+	
+	return(1);
+}
+
+/*
+ * Validate that the message is valid
+ * used by the parseMessage function
+ * Returns 0 if invalid message, 1 otherwise
+ *
+ * If we're using the OSD, the deviceZoneId should be 0.
+ */
+INTEGER_FUNCTION validateMessage(STRING message, BYREF INTEGER messageDeviceId, BYREF INTEGER messageZoneId, 
+								BYREF INTEGER messageSequence, INTEGER messageEnd, INTEGER playerID, 
+								INTEGER debug)
+{
+	INTEGER calculatedChecksum;
+	INTEGER responseChecksum;
+	INTEGER index;
+	
+	/*
+     * The shortest response is "01/1/000:/xx", so if we have something
+     * shorter than that, then we can just ignore it since we know it's
+     * corrupted.
+     */
+    if (messageEnd < 12)
+    {
+    	if(debug) print ("Response too short: %s\n",message);
+        return(0);
+    }
+    
+    /*
+     * If using serial number device ID messages, the message will be longer
+     * #00000000FFFF/1/000:/xx
+     */
+    if (byte(message, 1) = '#' && messageEnd < 22) //shortest len for a sn device ID type message
+    {
+    	if(debug) print ("Response too short: %s\n", message);
+        return(0);    	
+    }
+
+	//If using serial number with a zone, Message format should be: #00000000FFFF.01/1/
+    if (byte(message, 1) = '#' && byte(message, 14) = '.') //device ID with zone
+    {
+    	if(!isHex(byte(message, 2)) 					||
+    	   !isHex(byte(message, 3)) 					||
+    	   !isHex(byte(message, 4)) 					||
+    	   !isHex(byte(message, 5)) 					||
+    	   !isHex(byte(message, 6)) 					||
+    	   !isHex(byte(message, 7)) 					||
+    	   !isHex(byte(message, 8)) 					||
+    	   !isHex(byte(message, 9)) 					||
+    	   !isHex(byte(message, 10)) 					||
+    	   !isHex(byte(message, 11)) 					||
+    	   !isHex(byte(message, 12)) 					||
+    	   !isHex(byte(message, 13)) 					||
+    	   !isDigit(byte(message, 15)) 					||
+    	   !isDigit(byte(message, 16)) 					||
+    	   byte(message, 17) != BACKSLASH 				||
+    	   !isSequence(byte(message, 18)) 				||
+    	   byte(message, 19) != BACKSLASH 				||
+           byte(message, messageEnd - 2) != BACKSLASH	)
+        {           
+    		print("Kaleidescape Player ID %d:  Received garbled message.\n    message is: %s\n",
+    			playerID, message);
+        	return(0);
+        }
+        
+        messageDeviceId = 0;
+        messageZoneId = atoi(mid(message, 15, 2));
+        
+        print("Serial Number device IDs are not supported.  Bad Address: %s\n", left(message,13));
+        return(0);
+    }
+    //If using serial number without a zone, message format should be: #00000000FFFF/1/
+    else if (byte(message,1) = '#')
+    {
+    	if(!isHex(byte(message, 2)) 					||
+    	   !isHex(byte(message, 3)) 					||
+    	   !isHex(byte(message, 4)) 					||
+    	   !isHex(byte(message, 5)) 					||
+    	   !isHex(byte(message, 6)) 					||
+    	   !isHex(byte(message, 7)) 					||
+    	   !isHex(byte(message, 8)) 					||
+    	   !isHex(byte(message, 9)) 					||
+    	   !isHex(byte(message, 10)) 					||
+    	   !isHex(byte(message, 11)) 					||
+    	   !isHex(byte(message, 12)) 					||
+    	   !isHex(byte(message, 13)) 					||
+    	   byte(message, 14) != BACKSLASH 				||
+    	   !isSequence(byte(message, 15)) 				||
+    	   byte(message, 16) != BACKSLASH 				||
+           byte(message, messageEnd - 2) != BACKSLASH	)
+        {          
+    		print("Kaleidescape Player ID %d:  Received garbled message.\n    message is: %s\n",
+    			playerID, message);
+        	return(0);
+        }
+        
+        messageDeviceId = 0;
+        messageZoneId = 0;
+        
+	    print("Serial Number device IDs are not supported.  Bad Address: %s\n", left(message,13));
+    	return(0);
+    }
+    //If using a zone ID, message format should be 01.01/1/
+	else if (byte(message,3) = '.') //contains a zone ID
+	{
+    	if(!isDigit(byte(message, 1)) 					||
+    	   !isDigit(byte(message, 2)) 					||
+    	   !isDigit(byte(message, 4)) 					||
+    	   !isDigit(byte(message, 5)) 					||
+    	   byte(message, 6) != BACKSLASH 				||
+    	   !isSequence(byte(message, 7)) 				||
+    	   byte(message, 8) != BACKSLASH 				||
+           byte(message, messageEnd - 2) != BACKSLASH	)
+        {           
+    		print("Kaleidescape Player ID %d:  Received garbled message.\n    message is: %s\n", 
+    				playerID, message);
+        	return(0);     
+        }    	
+
+	    messageDeviceId = atoi(left(message, 2));
+   		messageZoneId  = atoi(mid(message, 4, 2));
+   		messageSequence = byte(message,7);
+   	}
+	//If using a CPDID only, message format should be 01/1/
+	else
+	{
+		if(!isDigit(byte(message, 1)) 					||
+    	   !isDigit(byte(message, 2)) 					||
+    	   byte(message, 3) != BACKSLASH 				||
+    	   !isSequence(byte(message, 4)) 				||
+    	   byte(message, 5) != BACKSLASH 				||
+           byte(message, messageEnd - 2) != BACKSLASH	)
+		{           
+    		print("Kaleidescape Player ID %d:  Received garbled message.\n    message is: %s\n",
+    			playerID, message);
+        	return(0);        	
+        }
+	    messageDeviceId = atoi(left(message, 2));
+	    messageSequence = byte(message, 4);
+	    messageZoneId  = 0;
+    }
+          
+    // Calculate the checksum and verify it.
+    calculatedChecksum = 0;
+    for(index = 1 to (messageEnd - 2) ) // skip last two characters, that's the checksum itself.
+    {
+        calculatedChecksum = (calculatedChecksum + byte(message, index)) mod 100;
+    }
+    
+    responseChecksum = atoi(right(message, len(message) - messageEnd + 2));
+    if (calculatedChecksum != responseChecksum)
+    {
+    	if(debug) print("Bad checksum: %d vs %d\n", calculatedChecksum, responseChecksum);
+        return(0);
+    }
+    
+    return(1);   
+}
+
+//Provided for backwards compatibility.
+INTEGER_FUNCTION isValidMessage(STRING message, INTEGER deviceId, INTEGER deviceZoneId, 
+								INTEGER sequenceSent, INTEGER messageEnd, INTEGER playerID, 
+								INTEGER directConnect, INTEGER debug)
+{
+	INTEGER messageDeviceId;
+	INTEGER messageZoneId;
+	INTEGER messageSequence;
+	
+	if(validateMessage(message, messageDeviceId, messageZoneId, messageSequence, 
+					   messageEnd, playerID, debug))
+	{
+		return (isTargetMessage(messageDeviceId, messageZoneId, messageSequence,
+								deviceId, deviceZoneId, sequenceSent,
+								directConnect, debug));
+	}
+	else
+	{
+		return(0);
+	}
+}								
+
+//Parses the arguments used by parseMessage() and parseInit2Message()
+FUNCTION getNArguments(STRING arguments[], BYREF INTEGER numArgs, 
+					   INTEGER newTotalArgs, STRING message, 
+					   BYREF INTEGER messagePosition, BYREF INTEGER messageEnd)
+{
+	INTEGER	character;
+	INTEGER escaped;
+	INTEGER argumentLength;
+		             
+	//Initialize our variables
+	escaped = 0;
+	argumentLength = 0;
+	
+	while (messagePosition <= messageEnd && numArgs < newTotalArgs)
+	{        	
+        //get the character being examined 
+        character = byte(message, messagePosition);
+        messagePosition = messagePosition + 1;
+        
+        if (escaped = 1)
+        {
+        	// The previous character was a backslash, treat this character specially.
+            switch (character)
+            {
+                case ('d'):
+                {
+                    // The following three digits make up the character.                    
+                    character = (byte(message, messagePosition) - '0') * 100;
+                    character = character + (byte(message, messagePosition + 1) - '0') * 10;
+                    character = character + (byte(message, messagePosition + 2) - '0');
+                    messagePosition = messagePosition + 3;
+                }
+                case ('t'):
+                {
+                    character = TAB;
+                }
+                case ('n'):
+                {
+                    character = LF;
+                }
+                case ('r'):
+                {
+                    character = CR;
+                }
+                default:
+                {
+                    // All other characters are simply themselves, nothing to do here.
+                }
+            }
+            if(argumentLength = 0) arguments[numArgs] = ""; //Clear the argument.
+            
+            // Append character to the response                        
+            if(argumentLength < MAX_RESPONSE_ARG_LEN)
+            {
+            	setString(chr(character), argumentLength + 1, arguments[numArgs]);            	
+            	argumentLength = argumentLength + 1;
+            }
+
+            // The escape only applies to the next character.  After that we're back to normal.
+            escaped = 0;
+        }
+        else  // here if escaped is 0
+        {
+            switch (character)
+            {
+            	case (ESCSLASH): // Treat the next character specially.
+            	{                    
+                    escaped = 1;
+                }
+                case (':'): // Colons separate arguments, so prep the next argument
+                {
+                	numArgs = numArgs + 1;
+                	argumentLength = 0;
+                }
+                default:
+                {
+                	if(argumentLength = 0) arguments[numArgs] = ""; //Clear the argument.
+                	
+                    // Normal character, append it.
+    		        if(argumentLength < MAX_RESPONSE_ARG_LEN)
+    		        {
+    		        	setString(chr(character), argumentLength + 1, arguments[numArgs]);
+    		        	argumentLength = argumentLength + 1;
+    		        }
+                }
+            }
+        }
+    }
+}
+
+// Decode and display the error code & message
+FUNCTION printPlayerError(INTEGER errorCode, STRING details, INTEGER playerId)
+{
+	string description[30];
+	
+	switch(errorCode)  {
+		case(1):
+		{
+			description =  "Message too long.";
+		}
+		case(2):
+		{
+			description =  "Message contains invalid character.";
+		}
+		case(3):
+		{
+			description =  "Checksum error.";
+		}
+		case(4):
+		{
+			description =  "Invalid device or device is offline.";
+		}
+		case(5):
+		{
+			description =  "Device unavailable.";
+		}
+		case(10):
+		{
+			description =  "Invalid request.";
+		}
+		case(11):
+		{
+			description =  "Invalid number of parameters.";
+		}
+		case(12):
+		{
+			description =  "Invalid parameter.";
+		}
+		case(13):
+		{
+			description =  "Device identifier conflict.";
+		}
+		case(14):
+		{
+			description =  "Invalid sequence number.";
+		}
+		case(15):
+		{
+			description =  "Disallowed due to parental control.";
+		}
+		case(16):
+		{
+			description =  "Invalid passcode.";
+		}
+		case(17):
+		{
+			description =  "Invalid content handle.";
+		}
+		case(999):
+		{
+			description =  "Undetermined error.";
+		}
+		default:
+		{
+			description =  "Unknown error.";
+		}
+	}
+	
+	//send error text to console
+	print("Kaleidescape Device ID %d: Error %03d, %s  %s\n", 
+		playerId, errorCode, description, details);
+}      
+
+// Decrypt the device type, and ensure that the device is a valid one that can be controlled
+INTEGER_FUNCTION checkDeviceType(INTEGER deviceType, INTEGER playerId)
+{
+	STRING typeText[30];
+	
+	switch(deviceType)	{
+		case(1):
+		{
+			typeText = "a Server";
+		}
+		
+		case(2):
+		{
+			typeText = "a Player";
+			return(1); //halt execution of this function with a success result
+		}
+		
+		case(3):
+		{
+			typeText = "a Bulk Loader";
+		}
+		
+		case(5):
+		{
+			typeText = "a DVD Reader";
+		}
+		
+		case(7):
+		{
+			typeText = "";
+			return(1); //halt execution of this function with a success result
+		}
+		
+		case(8):
+		{
+			typeText = "a Music Player";
+			return(1); //halt execution of this function with a success result
+		}
+		
+		default:
+		{
+			typeText = "an unknown device";
+		}
+	}
+	
+	//if control falls here, we are not talking to a player.
+	
+	print("\nKaleidescape Device ID %d is %s, not a Player.\n", playerID, typeText);
+	print("The Kaleidescape module only controls a Kaleidescape Player.\n\n");
+	return(0); //indicate failure
+} 

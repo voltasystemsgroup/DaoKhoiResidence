@@ -1,0 +1,59 @@
+[BEGIN]
+  Version=1
+[END]
+[BEGIN]
+  ObjTp=FSgntr
+  Sgntr=UserSPlus
+  RelVrs=1
+  IntStrVrs=1
+  SPlusVrs=3.02.01
+  InclDatVrs=1.17
+  CrossCplrVrs=1.1
+[END]
+[BEGIN]
+  InputList2Cue1=System
+  InputList2SigType1=Analog
+  InputList2Cue2=Keypad$
+  InputList2SigType2=Serial
+  InputList2Cue3=FromDevice$
+  InputList2SigType3=Serial
+  OutputList2Cue1=KeyPressed
+  OutputList2SigType1=Analog
+  OutputList2Cue2=KeyRamp[#]
+  OutputList2SigType2=Analog
+  ObjTp=Symbol
+  Exclusions=1,19,20,21,88,89,310,718,756,854,
+  Name=Lutron RadioRA Processor
+  SmplCName=Lutron RadioRA Processor.usp
+  Code=1
+  SysRev5=3.083
+  SMWRev=2.02.05
+  MinVariableInputs=0
+  MaxVariableInputs=0
+  MinVariableInputsList2=3
+  MaxVariableInputsList2=3
+  MinVariableOutputs=0
+  MaxVariableOutputs=0
+  MinVariableOutputsList2=2
+  MaxVariableOutputsList2=16
+  Expand=expand_randomly
+  ProgramTree=Logic
+  SymbolTree=32
+  Hint=
+  HelpID= 
+  Render=4
+  Smpl-C=16
+  CompilerCode=-48
+  CompilerParamCode=27
+  CompilerParamCode5=14
+  NumFixedParams=1
+  NVStorage=10
+  ParamSigType1=String
+  ParamCue1=[Reference Name]
+  SmplCInputCue1=o#
+  SmplCOutputCue1=i#
+  SmplCInputList2Cue1=an#
+  SmplCOutputList2Cue1=ai#
+  SPlus2CompiledName=S2_Lutron_RadioRA_Processor
+  SymJam=NonExclusive
+[END]

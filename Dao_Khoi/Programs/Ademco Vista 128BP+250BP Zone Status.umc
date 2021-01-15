@@ -1,0 +1,471 @@
+[
+Version=1
+]
+[
+ObjTp=FSgntr
+Sgntr=UserMacro
+RelVrs=2.04.11
+IntStrVrs=2
+MinSMWVrs=0
+MinTIOVrs=0
+SavedBy=SMW2.04.11
+]
+[
+ObjTp=Hd
+S0Nd=1
+S1Nd=2
+SLNd=3
+PrNm=Ademco Vista 128BP+250BP Zone Status.umc
+DbVr=15.9.5
+PgmNm=PAC
+DlrNm=Crestron Electronics
+CltNm=Decode status from Ademco Vista-250B Zone Decoder into 5 seperate states
+Incl=167,168,216,225,248,249,266,362,380,405,407,408,409,478,522,537,554,586,
+McNm=Ademco Vista 128BP+250BP Zone Status
+SmVr=221
+DvVr=221
+TpN1=1
+TpN2=2
+TpN3=3
+TpN4=4
+TpN5=5
+Cmn1=SIMPLWINDOWS NAME: Ademco Vista 128BP+250BP Zone Status\\\\VENDOR:
+Cmn2=||1Ademco\\MODEL: Vista 128BP + 250BP\\\\CATEGORY: Security\\\\VERSION:
+Cmn3=||11.0\\\\SUMMARY: Decode status from Ademco Vista 128PB+250BP Zone||1
+Cmn4=Decoder into 5 seperate states\\\\\\GENERAL NOTES: This macro will||1
+Cmn5=work with an Ademco Vista security \\system.This macro works in||1
+Cmn6=conjunction with the Ademco Vista 128BP+250BP Zone Decoder\\module.
+Cmn7=||1It will decode the analog signal provided by Ademco Vista 128BP+250BP||1
+Cmn8=Zone\\Decoder into 5 seperate, independant states. One copy should||1
+Cmn9=be used for\\each zone to be monitored. A system can also be programmed||1
+Cmn10=to ABUFFER\\different zone status signals into just a few copies||1
+Cmn11=of the\\Ademco Vista 128BP+250BP Zone Status macro. \\\\\\CRESTRON||1
+Cmn12=HARDWARE REQUIRED: CNXCOM-2, ST-COM, CNXCOM, C2COM\\\\\\SETUP OF||1
+Cmn13=CRESTRON HARDWARE:\\RS-232C\\Baud Rate - 1200\\Parity - None\\Data||1
+Cmn14=Bits - 8\\Stop Bits - 1\\\\\\VENDOR FIRMWARE: WAVIS250BP-11 Rev||1
+Cmn15=1, WAVIS250-81PL\\                 WAVIS128BP-12.3\\\\\\VENDOR SETUP:
+Cmn16=||1The Ademco system must have the 4100SM RS232 Interface card\\or||1
+Cmn17=the VA8201 Alpha Pager Module(APM) installed. The card/module must||1
+Cmn18=then be enabled.\\When using the VA-8201 APM you must set Field||1
+Cmn19=1*69 to 0(Parallel Printer).\\\\NOTE: The only way to connect a||1
+Cmn20=printer to the Ademco and still allow Crestron control\\is to use||1
+Cmn21=the VA-8201 APM and a parallel printer.\\\\NOTE: If you are not||1
+Cmn22=able to control the Ademco system and the Ademco keypad\\reads "PAGER||1
+Cmn23=OFF-LINE", contact Ademco.\\\\\\CABLE NUMBER: CNSP-125\\\\\\INPUT||1
+Cmn24=DESCRIPTIONS: \\\\Name             Type Description\\Zone_Status||1
+Cmn25=||7A  Analog signal routed from the Ademco Vista-250B Zone Decoder||1
+Cmn26=macro\\\\\\OUTPUT DESCRIPTIONS: \\\\Name             Type Description\\Zone_Closed||1
+Cmn27=||7D  Indicates the selected zone is closed\\Zone_Open||6
+Cmn28=||4D  Indicates the selected zone is open\\Zone_Trouble       D||1
+Cmn29=||1Indicates th selected zone is trouble\\Zone_Alert         D  Indicates||1
+Cmn30=the selected zone is alert\\Zone_Bypass        D  Indicates the||1
+Cmn31=selected zone is bypassed\\\\\\OPS USED FOR TESTING: 5.14.02x\\PRO2||1
+Cmn32=OPS USED FOR TESTING: 3.044\\\\COMPILER USED FOR TESTING: SimplWindows||1
+Cmn33=Ver 2.04.11\\\\SAMPLE PROGRAM: Ademco Vista Demo CNMSX\\||8
+Cmn34=||8Ademco Vista Demo PRO2\\\\REVISION HISTORY: None\\
+]
+[
+ObjTp=Bk
+Nm1=\
+Sx1=0
+Sy1=0
+Mx1=0
+]
+[
+ObjTp=Symbol
+Name=Ademco Vista 128BP+250BP Zone Status
+Code=1
+SmplCName=Ademco Vista 128BP+250BP Zone Status.umc
+Smpl-C=3
+Convertable=True
+CompilerTimePrecision=Single_Or_Double_Precision
+Hint=Decode status from Ademco Vista-250B Zone Decoder into 5 seperate states
+SMWRev=0
+TIORev=0
+HelpID=1055
+NumFixedInputs=1
+NumFixedOutputs=5
+MinVariableInputs=0
+MinVariableInputsList2=0
+MinVariableInputsList3=0
+MinVariableOutputs=0
+MinVariableOutputsList2=0
+MinVariableOutputsList3=0
+MinVariableParams=0
+SymbolTree=21
+InputSigType1=Analog
+ParamSigType1=Time|Percent|Constant|String|FileName|HexAddress|Any
+InputCue1=Zone_Status
+OutputCue1=Zone_Closed
+OutputCue2=Zone_Open
+OutputCue3=Zone_Trouble
+OutputCue4=Zone_Alert
+OutputCue5=Zone_Bypass
+FileName=Ademco Vista 128BP+250BP Zone Status.umc
+]
+[
+ObjTp=Sm
+H=1
+SmC=157
+Nm=Central Control Modules
+CF=2
+n1I=1
+n1O=1
+mI=1
+mO=1
+tO=1
+mP=1
+P1=
+]
+[
+ObjTp=Sm
+H=2
+SmC=157
+Nm=Network Modules
+CF=2
+n1I=1
+n1O=1
+mI=1
+mO=1
+tO=1
+mP=1
+P1=
+]
+[
+ObjTp=Sm
+H=3
+SmC=157
+Nm=Ethernet
+CF=2
+n1I=1
+n1O=1
+mI=1
+mO=1
+tO=1
+mP=1
+P1=
+]
+[
+ObjTp=Sm
+H=4
+SmC=156
+Nm=Logic
+CF=2
+mC=1
+C1=346
+]
+[
+ObjTp=Sm
+H=5
+SmC=157
+Nm=DefineArguments
+CF=2
+n1I=1
+n1O=1
+mC=1
+C1=13
+mI=1
+mO=1
+tO=1
+mP=1
+P1=
+]
+[
+ObjTp=Sm
+H=6
+SmC=1
+PrH=346
+CF=2
+n1I=6
+n1O=1
+Cmn1=Terminate unused signals\\
+mI=6
+I1=14
+I2=1
+I3=10
+I4=11
+I5=12
+I6=13
+mO=1
+tO=1
+O1=14
+]
+[
+ObjTp=Sm
+H=13
+SmC=55
+PrH=5
+CF=2
+n1I=1
+n1O=5
+mI=1
+I1=4
+mO=5
+tO=5
+O1=5
+O2=6
+O3=7
+O4=8
+O5=9
+mP=1
+P1=
+]
+[
+ObjTp=Sm
+H=58
+SmC=38
+PrH=346
+CF=2
+n1I=2
+n1O=16
+Cmn1=DECODE ZONE 1 STATUS
+mI=2
+I1=4
+mO=16
+tO=16
+O1=279
+O2=280
+O3=281
+O4=282
+O5=283
+O6=284
+O7=285
+O8=286
+O9=287
+O10=288
+O11=289
+O12=290
+O13=291
+O14=292
+O15=293
+O16=294
+mP=16
+P1=48D
+P2=49D
+P3=50D
+P4=51D
+P5=52D
+P6=53D
+P7=54D
+P8=55D
+P9=56D
+P10=57D
+P11=65d
+P12=66d
+P13=67d
+P14=68d
+P15=69d
+P16=70d
+]
+[
+ObjTp=Sm
+H=63
+SmC=28
+PrH=346
+CF=2
+n1I=16
+n1O=9
+Cmn1=DECODE ZONE 1 STATUS
+mI=16
+I1=279
+I2=280
+I3=281
+I4=282
+I5=283
+I6=284
+I7=285
+I8=286
+I9=287
+I10=288
+I11=289
+I12=290
+I13=291
+I14=292
+I15=293
+I16=294
+mO=9
+tO=9
+O1=5
+O2=6
+O3=7
+O4=8
+O5=9
+O6=10
+O7=11
+O8=12
+O9=13
+mP=25
+P1=H,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L
+P2=L,H,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L
+P3=L,L,H,L,L,L,L,L,L,L,L,L,L,L,L,L,L
+P4=L,L,L,H,L,L,L,L,L,L,L,L,L,L,L,L,L
+P5=L,L,L,L,H,L,L,L,L,L,L,L,L,L,L,L,L
+P6=L,L,L,L,L,H,L,L,L,L,L,L,L,L,L,L,L
+P7=L,L,L,L,L,L,H,L,L,L,L,L,L,L,L,L,L
+P8=L,L,L,L,L,L,L,H,L,L,L,L,L,L,L,L,L
+P9=L,L,L,L,L,L,L,L,H,L,L,L,L,L,L,L,L
+P10=L,L,L,L,L,L,L,L,L,H,L,L,L,L,L,L,L
+P11=L,L,L,L,L,L,L,L,L,L,H,L,L,L,L,L,L
+P12=L,L,L,L,L,L,L,L,L,L,L,H,L,L,L,L,L
+P13=L,L,L,L,L,L,L,L,L,L,L,L,H,L,L,L,L
+P14=L,L,L,L,L,L,L,L,L,L,L,L,L,H,L,L,L
+P15=L,L,L,L,L,L,L,L,L,L,L,L,L,L,H,L,L
+P16=L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,H,L
+P17=H,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L
+P18=L,H,L,H,L,H,L,H,L,H,L,H,L,H,L,H,L
+P19=L,L,H,H,L,L,H,H,L,L,H,H,L,L,H,H,L
+P20=L,L,L,L,H,H,H,H,L,L,L,L,H,H,H,H,L
+P21=L,L,L,L,L,L,L,L,H,H,H,H,H,H,H,H,L
+P22=X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X
+P23=X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X
+P24=X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X
+P25=X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X
+]
+[
+ObjTp=Sm
+H=346
+SmC=156
+PrH=4
+CF=2
+Cmn1=ZONE STATUS
+mC=3
+C1=58
+C2=63
+C3=6
+]
+[
+ObjTp=Sg
+H=4
+Nm=Zone_Status
+SgTp=2
+]
+[
+ObjTp=Sg
+H=5
+Nm=Zone_Closed
+]
+[
+ObjTp=Sg
+H=6
+Nm=Zone_Open
+]
+[
+ObjTp=Sg
+H=7
+Nm=Zone_Trouble
+]
+[
+ObjTp=Sg
+H=8
+Nm=Zone_Alert
+]
+[
+ObjTp=Sg
+H=9
+Nm=Zone_Bypass
+]
+[
+ObjTp=Sg
+H=10
+Nm=DUMMY-1
+]
+[
+ObjTp=Sg
+H=11
+Nm=DUMMY-2
+]
+[
+ObjTp=Sg
+H=12
+Nm=DUMMY-3
+]
+[
+ObjTp=Sg
+H=13
+Nm=DUMMY-4
+]
+[
+ObjTp=Sg
+H=14
+Nm=terminate
+]
+[
+ObjTp=Sg
+H=279
+Nm=ZONE-1-STAT-0
+]
+[
+ObjTp=Sg
+H=280
+Nm=ZONE-1-STAT-1
+]
+[
+ObjTp=Sg
+H=281
+Nm=ZONE-1-STAT-2
+]
+[
+ObjTp=Sg
+H=282
+Nm=ZONE-1-STAT-3
+]
+[
+ObjTp=Sg
+H=283
+Nm=ZONE-1-STAT-4
+]
+[
+ObjTp=Sg
+H=284
+Nm=ZONE-1-STAT-5
+]
+[
+ObjTp=Sg
+H=285
+Nm=ZONE-1-STAT-6
+]
+[
+ObjTp=Sg
+H=286
+Nm=ZONE-1-STAT-7
+]
+[
+ObjTp=Sg
+H=287
+Nm=ZONE-1-STAT-8
+]
+[
+ObjTp=Sg
+H=288
+Nm=ZONE-1-STAT-9
+]
+[
+ObjTp=Sg
+H=289
+Nm=ZONE-1-STAT-10
+]
+[
+ObjTp=Sg
+H=290
+Nm=ZONE-1-STAT-11
+]
+[
+ObjTp=Sg
+H=291
+Nm=ZONE-1-STAT-12
+]
+[
+ObjTp=Sg
+H=292
+Nm=ZONE-1-STAT-13
+]
+[
+ObjTp=Sg
+H=293
+Nm=ZONE-1-STAT-14
+]
+[
+ObjTp=Sg
+H=294
+Nm=ZONE-1-STAT-15
+]

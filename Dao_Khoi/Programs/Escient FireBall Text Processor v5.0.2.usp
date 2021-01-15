@@ -1,0 +1,1641 @@
+/***********************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+***********************************************************************/
+/*
+Dealer Name: Escient 
+System Name: FireBall
+System Number:
+Programmer: CPC
+Comments:
+*/
+
+/***********************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+***********************************************************************/
+#SYMBOL_NAME "Escient FireBall Text Processor v5.0.2"
+
+#DEFINE_CONSTANT MAXGENRESPERSCREEN 10
+#DEFINE_CONSTANT MAXTITLESPERSCREEN 10
+#DEFINE_CONSTANT MAXTRACKSPERSCREEN 10
+#DEFINE_CONSTANT MAXMAXDATALENGTH 100
+
+#HELP_BEGIN
+For use only with the Escient FireBall Macro v5.0.2
+#HELP_END
+
+/***********************************************************************
+  Include Libraries
+  (Uncomment and include additional librarys as needed)
+***********************************************************************/
+// #CRESTRON_LIBRARY ""
+// #USER_LIBRARY ""
+
+/***********************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+***********************************************************************/
+DIGITAL_INPUT TitleSearch, ErrorContinue;
+DIGITAL_INPUT FirstMusicGenre, PrevMusicGenre, NextMusicGenre, LastMusicGenre;
+DIGITAL_INPUT FirstMusicTitle, PrevMusicTitle, NextMusicTitle, LastMusicTitle;
+DIGITAL_INPUT FirstMusicTrack, PrevMusicTrack, NextMusicTrack, LastMusicTrack;
+DIGITAL_INPUT SyncMusicInfo;
+DIGITAL_INPUT FirstRadioGenre, PrevRadioGenre, NextRadioGenre, LastRadioGenre;
+DIGITAL_INPUT FirstRadioTitle, PrevRadioTitle, NextRadioTitle, LastRadioTitle;
+DIGITAL_INPUT FirstMovieGenre, PrevMovieGenre, NextMovieGenre, LastMovieGenre;
+DIGITAL_INPUT FirstMovieTitle, PrevMovieTitle, NextMovieTitle, LastMovieTitle;
+DIGITAL_INPUT PrevMovieDecription, NextMovieDescription;
+DIGITAL_INPUT SyncMovieInfo, MovieSelector;
+DIGITAL_INPUT Exit;
+
+ANALOG_INPUT GenresPerScreenSelector, TitlesPerScreenSelector, TracksPerScreenSelector, MaxDataLengthSelector;
+ANALOG_INPUT MovieSourceSelector, ElapsedTimeStatusSelector, SyncTVUISelector;
+ANALOG_INPUT SourceSelector;
+ANALOG_INPUT MusicGenreSelector, MusicTitleSelector, MusicTrackSelector;
+ANALOG_INPUT RadioGenreSelector, RadioTitleSelector;
+ANALOG_INPUT MovieGenreSelector, MovieTitleSelector;
+
+BUFFER_INPUT Escient_Rx$[20000];
+STRING_INPUT TempLastCommand$[500];
+STRING_INPUT TitleSearch$[50];
+
+ANALOG_INPUT NavigateX, NavigateY;
+DIGITAL_INPUT TouchUp;
+DIGITAL_INPUT SearchSubOff;
+
+
+DIGITAL_OUTPUT PowerOnFb, PowerOffFb, SearchFound, SearchFailed, ErrorSubOn;
+DIGITAL_OUTPUT MovieSourceEnable, SyncTVUIEnable;
+
+ANALOG_OUTPUT PlayState, DatabaseChanged, Source, MovieDescriptionPointer;
+
+STRING_OUTPUT Escient_Tx$, Search1$;
+//Note: StringOut ArraySize = (MAXGENRESPERSCREEN * 3) + (MAXTITLESPERSCREEN * 3) + MAXTRACKSPERSCREEN + 25;
+STRING_OUTPUT StringOut$[95];
+DIGITAL_OUTPUT SearchOffMovies, SearchOffMusic, SearchOffRadio;
+
+/***********************************************************************
+  Global Variables
+  (Uncomment and declare global variables as needed)
+***********************************************************************/
+//X-Y_Navigation
+VOLATILE INTEGER NewX, NewY;
+
+VOLATILE INTEGER GenresPerScreen, TitlesPerScreen, TracksPerScreen, MaxDataLength;
+VOLATILE INTEGER MovieSource, ElapsedTimeStatus, SyncTVUI;
+VOLATILE INTEGER RxOk, CommandRx, SubCommandRx, NumberOfItemsRx, ResendLastCommand;
+VOLATILE INTEGER Data1LengthRx, Data2LengthRx, LengthRx, GenreLength, TitleLength, TrackLength, Pointer, Marker, i, j;
+VOLATILE INTEGER Minutes, Seconds, MediaType, GuideView, DataChanged;
+VOLATILE STRING InBufferString$[20000], Data1Rx$[MAXMAXDATALENGTH], Data2Rx$[MAXMAXDATALENGTH], TempString$[MAXMAXDATALENGTH], TempStringLong$[500];
+VOLATILE STRING LastCommand$[500], SearchString$[1];
+VOLATILE STRING CurrentTrackNumberInt$[5], CurrentArtistInt$[MAXMAXDATALENGTH], CurrentTitleInt$[MAXMAXDATALENGTH], CurrentTrackInt$[MAXMAXDATALENGTH];
+
+//StringOut OffSets...
+VOLATILE INTEGER MusicGenreOut[MAXGENRESPERSCREEN], RadioGenreOut[MAXGENRESPERSCREEN], MovieGenreOut[MAXGENRESPERSCREEN];
+VOLATILE INTEGER CurrentMusicInfo[5], MusicTitleInfo, MusicTitles[MAXTITLESPERSCREEN], MusicTrackInfo, MusicTracks[MAXTRACKSPERSCREEN];
+VOLATILE INTEGER CurrentRadioInfo[4], RadioTitleInfo, RadioTitles[MAXTITLESPERSCREEN];
+VOLATILE INTEGER CurrentMovieInfo[5], MovieTitleInfo, MovieTitles[MAXTITLESPERSCREEN], MovieInfo[7];
+
+//List Pointers...
+VOLATILE INTEGER CurrentMusicGenreScreen, CurrentRadioGenreScreen, CurrentMovieGenreScreen;
+VOLATILE INTEGER TotalMusicTitles, TotalRadioTitles, TotalMovieTitles;
+VOLATILE INTEGER CurrentMusicTitleScreen, CurrentRadioTitleScreen, CurrentMovieTitleScreen;
+VOLATILE INTEGER TotalMusicTitleScreens, TotalRadioTitleScreens, TotalMovieTitleScreens;
+VOLATILE INTEGER CurrentMusicTitleIndex, CurrentRadioTitleIndex, CurrentMovieTitleIndex;
+VOLATILE INTEGER CurrentTrackScreen, TotalTrackScreens;
+
+VOLATILE INTEGER DBChanged, Database, DBType;
+VOLATILE INTEGER PlaylistGenre; 
+VOLATILE INTEGER TracksInTitle[MAXTRACKSPERSCREEN], TotalTracks, Track;
+VOLATILE INTEGER TitlesToClear;
+VOLATILE STRING TrackCache$[255][MAXMAXDATALENGTH];
+
+//Music Cache Variables:
+VOLATILE INTEGER MusicGenreData[4], MusicTitlesInGenre[255];
+VOLATILE INTEGER MusicDBType, MusicGenre, MusicTitle;
+VOLATILE INTEGER SelectedMusicDBType, SelectedMusicGenre, SelectedMusicTitle;
+VOLATILE INTEGER CurrentMusicDBType, CurrentMusicGenre, CurrentMusicTitle, CurrentMusicUpdate;
+VOLATILE INTEGER MusicTrack, TotalMusicTracks;
+VOLATILE STRING MusicGenreCache$[255][MAXMAXDATALENGTH], MusicTitleNames$[MAXTITLESPERSCREEN][MAXMAXDATALENGTH], CurrentMusicTitle$[MAXMAXDATALENGTH], SelectedMusicTitle$[MAXMAXDATALENGTH];
+
+//Radio Cache Variables:
+VOLATILE INTEGER RadioGenreData[4], RadioTitlesInGenre[255];
+VOLATILE INTEGER RadioDBType, RadioGenre, RadioTitle;
+VOLATILE STRING RadioGenreCache$[255][MAXMAXDATALENGTH], RadioTitleNames$[MAXTITLESPERSCREEN][MAXMAXDATALENGTH];
+
+//Movie Cache Variables:
+VOLATILE INTEGER MovieGenreData[4], MovieTitlesInGenre[255];
+VOLATILE INTEGER MovieDBType, MovieGenre, MovieTitle;
+VOLATILE INTEGER SelectedMovieDBType, SelectedMovieGenre, SelectedMovieTitle;
+VOLATILE INTEGER CurrentMovieDBType, CurrentMovieGenre, CurrentMovieTitle, CurrentMovieUpdate;
+VOLATILE INTEGER MDPointer, MDPointerLimit;
+VOLATILE STRING MovieGenreCache$[255][MAXMAXDATALENGTH], MovieTitleNames$[MAXTITLESPERSCREEN][MAXMAXDATALENGTH], CurrentMovieTitle$[MAXMAXDATALENGTH];
+VOLATILE STRING SelectedMovieInfo$[5][MAXMAXDATALENGTH], SelectedMovieCast$[200], SelectedMovieDescription$[16][240], TempMovieInfo$[5][MAXMAXDATALENGTH], TempMovieCast$[200];
+
+/************************************
+GenreData[1] = TotalGenres;
+GenreData[2] = TotalSystemGenres;
+GenreData[3] = TotalUserGenres;
+GenreData[4] = TotalGenreScreens;
+*************************************/
+
+CHANGE GenresPerScreenSelector
+	{
+	GenresPerScreen = GenresPerScreenSelector;
+	If (GenresPerScreen > MAXGENRESPERSCREEN) GenresPerScreen = MAXGENRESPERSCREEN;
+	}
+CHANGE TitlesPerScreenSelector
+	{
+	TitlesPerScreen = TitlesPerScreenSelector;
+	If (TitlesPerScreen > MAXTITLESPERSCREEN) TitlesPerScreen = MAXTITLESPERSCREEN;
+	}
+CHANGE TracksPerScreenSelector
+	{
+	TracksPerScreen = TracksPerScreenSelector;
+	If (TracksPerScreen > MAXTRACKSPERSCREEN) TracksPerScreen = MAXTRACKSPERSCREEN;
+	}
+CHANGE MaxDataLengthSelector
+	{
+	MaxDataLength = MaxDataLengthSelector;
+	If (MaxDataLength > MAXMAXDATALENGTH) MaxDataLength = MAXMAXDATALENGTH;
+	}
+CHANGE MovieSourceSelector
+	{
+	MovieSource = MovieSourceSelector;
+	If (MovieSource > 1) MovieSource = 1;
+	MovieSourceEnable = MovieSource;
+	}
+CHANGE ElapsedTimeStatusSelector
+	{
+	ElapsedTimeStatus = ElapsedTimeStatusSelector;
+	If (ElapsedTimeStatus > 1) ElapsedTimeStatus = 1;
+	}
+CHANGE SyncTVUISelector
+	{
+	SyncTVUI = SyncTVUISelector;
+	If (SyncTVUI > 1) SyncTVUI = 1;
+	SyncTVUIEnable = SyncTVUI;
+	}
+
+Function NewMusicGenreScreen()
+	{
+	For(i = 1 to GenresPerScreen)
+		{
+		If ((CurrentMusicGenreScreen * GenresPerScreen) - GenresPerScreen + i <= MusicGenreData[1])
+			{
+			StringOut$[MusicGenreOut[i]] = MusicGenreCache$[CurrentMusicGenreScreen * GenresPerScreen - GenresPerScreen + i];
+			}
+		Else
+			{
+			MakeString(StringOut$[MusicGenreOut[i]], " "); // Clear String
+			}
+		}
+		processlogic();
+	}
+
+Function NewRadioGenreScreen()
+	{
+	For(i = 1 to GenresPerScreen)
+		{
+		If ((CurrentRadioGenreScreen * GenresPerScreen) - GenresPerScreen + i <= RadioGenreData[1])
+			{
+			StringOut$[RadioGenreOut[i]] = RadioGenreCache$[CurrentRadioGenreScreen * GenresPerScreen - GenresPerScreen + i];
+			}
+		Else
+			{
+			MakeString(StringOut$[RadioGenreOut[i]], " "); // Clear String
+			}
+		}
+		processlogic();
+	}
+
+Function NewMovieGenreScreen()
+	{
+	For(i = 1 to GenresPerScreen)
+		{
+		If ((CurrentMovieGenreScreen * GenresPerScreen) - GenresPerScreen + i <= MovieGenreData[1])
+			{
+			StringOut$[MovieGenreOut[i]] = MovieGenreCache$[CurrentMovieGenreScreen * GenresPerScreen - GenresPerScreen + i];
+			}
+		Else
+			{
+			MakeString(StringOut$[MovieGenreOut[i]], " "); // Clear String
+			}
+		}
+		processlogic();
+	}
+
+ 
+Function NewMusicTitleScreen()
+	{
+	Database = 1;
+	TempString$ = "Albums";
+	If (CurrentMusicTitleIndex + TitlesPerScreen - 1 <= TotalMusicTitles)
+		{
+		Makestring(Escient_Tx$, "ESCX20030040002%02d0004%04d0004%04d0004%04d\r", Database + MusicDBType, MusicGenre, CurrentMusicTitleIndex, CurrentMusicTitleIndex + TitlesPerScreen - 1);
+		MakeString(TempStringLong$, "%s %s: Titles %d thru %d of %d", MusicGenreCache$[MusicGenre + (MusicDBType * MusicGenreData[2])], TempString$, CurrentMusicTitleIndex, CurrentMusicTitleIndex + TitlesPerScreen - 1, TotalMusicTitles);
+		}
+	else
+		{
+		Makestring(Escient_Tx$, "ESCX20030040002%02d0004%04d0004%04d0004%04d\r", Database + MusicDBType, MusicGenre, CurrentMusicTitleIndex, TotalMusicTitles);
+		MakeString(TempStringLong$, "%s %s: Titles %d thru %d of %d", MusicGenreCache$[MusicGenre + (MusicDBType * MusicGenreData[2])], TempString$, CurrentMusicTitleIndex, TotalMusicTitles, TotalMusicTitles);
+		}
+		StringOut$[MusicTitleInfo] = TempStringLong$;
+	}
+
+Function NewRadioTitleScreen()
+	{
+	Database = 3;
+	TempString$ = "Stations";
+	If (CurrentRadioTitleIndex + TitlesPerScreen - 1 <= TotalRadioTitles)
+		{
+		Makestring(Escient_Tx$, "ESCX20030040002%02d0004%04d0004%04d0004%04d\r", Database + RadioDBType, RadioGenre, CurrentRadioTitleIndex, CurrentRadioTitleIndex + TitlesPerScreen - 1);
+		MakeString(TempStringLong$, "%s %s: Titles %d thru %d of %d", RadioGenreCache$[RadioGenre + (RadioDBType * RadioGenreData[2])], TempString$, CurrentRadioTitleIndex, CurrentRadioTitleIndex + TitlesPerScreen - 1, TotalRadioTitles);
+		}
+	else
+		{
+		Makestring(Escient_Tx$, "ESCX20030040002%02d0004%04d0004%04d0004%04d\r", Database + RadioDBType, RadioGenre, CurrentRadioTitleIndex, TotalRadioTitles);
+		MakeString(TempStringLong$, "%s %s: Titles %d thru %d of %d", RadioGenreCache$[RadioGenre + (RadioDBType * RadioGenreData[2])], TempString$, CurrentRadioTitleIndex, TotalRadioTitles, TotalRadioTitles);
+		}
+		StringOut$[RadioTitleInfo] = TempStringLong$;
+	}
+
+Function NewMovieTitleScreen()
+	{
+	Database = 5;
+	TempString$ = "Movies";
+	If (CurrentMovieTitleIndex + TitlesPerScreen - 1 <= TotalMovieTitles)
+		{
+		Makestring(Escient_Tx$, "ESCX20030040002%02d0004%04d0004%04d0004%04d\r", Database + MovieDBType, MovieGenre, CurrentMovieTitleIndex, CurrentMovieTitleIndex + TitlesPerScreen - 1);
+		MakeString(TempStringLong$, "%s %s: Titles %d thru %d of %d", MovieGenreCache$[MovieGenre + (MovieDBType * MovieGenreData[2])], TempString$, CurrentMovieTitleIndex, CurrentMovieTitleIndex + TitlesPerScreen - 1, TotalMovieTitles);
+		}
+	else
+		{
+		Makestring(Escient_Tx$, "ESCX20030040002%02d0004%04d0004%04d0004%04d\r", Database + MovieDBType, MovieGenre, CurrentMovieTitleIndex, TotalMovieTitles);
+		MakeString(TempStringLong$, "%s %s: Titles %d thru %d of %d", MovieGenreCache$[MovieGenre + (MovieDBType * MovieGenreData[2])], TempString$, CurrentMovieTitleIndex, TotalMovieTitles, TotalMovieTitles);
+		}
+		StringOut$[MovieTitleInfo] = TempStringLong$;
+	}
+
+Function NewTrackScreen()
+	{
+	For(i = 1 to TracksPerScreen)
+		{
+		If ((CurrentTrackScreen * TracksPerScreen) - TracksPerScreen + i <= TotalTracks)
+			{
+			MakeString(StringOut$[MusicTracks[i]],"%d. %s", CurrentTrackScreen * TracksPerScreen - TracksPerScreen + i, TrackCache$[CurrentTrackScreen * TracksPerScreen - TracksPerScreen + i]);
+			}
+		Else
+			{
+			MakeString(StringOut$[MusicTracks[i]], " "); // Clear String
+			}
+		}
+		processlogic();
+	}		
+
+
+CHANGE SourceSelector
+{
+	//First, populate and screen
+                StringOut$[CurrentMusicInfo[1]] = CurrentArtistInt$;
+				StringOut$[CurrentMusicInfo[2]] = CurrentTitleInt$;
+				StringOut$[CurrentMusicInfo[3]] = CurrentTrackInt$;
+				MakeString(StringOut$[MusicTrackInfo], "  Tracks for %s  ", SelectedMusicTitle$);
+				//Call NewTrackScreen();
+				//MakeString(StringOut$[MusicTracks[1]], " "); // Clear String
+				//MakeString(StringOut$[MusicTracks[2]], " "); // Clear String
+		For(i = 1 to TracksPerScreen)
+			{
+				StringOut$[MusicTracks[i]] = TrackCache$[i];
+            }
+                 
+		//MakeString(StringOut$[MusicTitleInfo], "  Loading  ");
+		
+	//done
+
+	If (Database = SourceSelector) DBChanged = 1;
+	Database = SourceSelector;
+	Source = SourceSelector;
+	DBType = 0;
+	Switch (Database)
+		{
+		Case(1): For (i = 1 to GenresPerScreen) StringOut$[MusicGenreOut[i]] = "";
+		Case(3): For (i = 1 to GenresPerScreen) StringOut$[RadioGenreOut[i]] = "";
+		Case(5): For (i = 1 to GenresPerScreen) StringOut$[MovieGenreOut[i]] = "";
+		}
+    If (SyncTVUI = 1)
+    	{
+		Switch (Database)
+			{
+			Case(1): Escient_Tx$ = "ESCX1061\r";
+			Case(3): Escient_Tx$ = "ESCX1062\r";
+			Case(5): Escient_Tx$ = "ESCX1060\r";
+			}
+    	}
+    
+	If (DBChanged = 1)
+		{
+		Makestring(Escient_Tx$, "ESCX20010010002%02d\r",  Database);
+		MusicGenreCache$[1] = "";
+		RadioGenreCache$[1] = "";
+		MovieGenreCache$[1] = "";
+		Escient_Tx$ = "ESCX5002\r";
+		}
+	Else
+		{
+		Switch(Database)
+			{
+			Case(1):		//Music
+				{
+					If (MusicGenreCache$[1] = "")
+					Makestring(Escient_Tx$, "ESCX20010010002%02d\r", Database);
+				Else
+					{
+					CurrentMusicGenreScreen = 1;
+					Call NewMusicGenreScreen();
+					}
+				Escient_Tx$ = "ESCX5002\r";
+				}
+			Case(3):		//Radio
+				{
+				If (RadioGenreCache$[1] = "")
+					Makestring(Escient_Tx$, "ESCX20010010002%02d\r", Database);
+				Else
+					{
+					CurrentRadioGenreScreen = 1;
+					Call NewRadioGenreScreen();
+					}
+				}
+			Case(5):		//Movies
+				{
+				If (MovieGenreCache$[1] = "")
+					Makestring(Escient_Tx$, "ESCX20010010002%02d\r", Database);
+				Else
+					{
+					CurrentMovieGenreScreen = 1;
+					Call NewMovieGenreScreen();
+					}
+				}
+			}
+		}
+	DBChanged = 0;
+	processlogic();
+	}
+
+
+
+//Music Genre Screens
+PUSH FirstMusicGenre
+	{
+	CurrentMusicGenreScreen = 1;         	
+	Call NewMusicGenreScreen();
+	} 
+                                                                                                                           
+PUSH LastMusicGenre
+	{
+	CurrentMusicGenreScreen = MusicGenreData[4];
+	Call NewMusicGenreScreen();
+	}
+   
+PUSH NextMusicGenre
+	{
+	If (CurrentMusicGenreScreen < MusicGenreData[4])
+		{
+		CurrentMusicGenreScreen = CurrentMusicGenreScreen + 1;
+		Call NewMusicGenreScreen();}
+	}
+    	
+PUSH PrevMusicGenre
+	{
+	If(CurrentMusicGenreScreen > 1)
+		{
+		CurrentMusicGenreScreen = CurrentMusicGenreScreen - 1;
+		Call NewMusicGenreScreen();}           
+    }
+
+PUSH SearchSubOff
+	{
+     Switch (SourceSelector)
+       {
+		Case(1): Pulse (100, SearchOffMusic);
+	
+		Case(3): Pulse (100, SearchOffRadio);
+		
+		Case(5):Pulse (100, SearchOffMovies);
+        }
+	}
+
+PUSH Exit
+	{
+     
+	DatabaseChanged = 1;
+	Source = 0;
+
+	For(i = 1 to TracksPerScreen)
+			{
+				StringOut$[MusicTitles[i]] = " ";
+            }
+
+MakeString(StringOut$[MusicTitleInfo], "  Loading  ");
+
+	For(i = 1 to TracksPerScreen)
+			{
+				StringOut$[MusicTracks[i]] = " ";
+            }
+		
+		
+
+	}
+
+CHANGE MusicGenreSelector
+	{
+	Switch(MusicGenreSelector)
+		{
+		Case(0):                             // View All
+			{
+			MusicGenre = 1;
+			MusicDBType = 0;
+			TotalMusicTitles = MusicTitlesInGenre[MusicGenre + (MusicDBType * MusicGenreData[2])];
+			CurrentMusicTitleIndex = 1;
+			Call NewMusicTitleScreen();
+			}
+		Default:
+			{
+			If (CurrentMusicGenreScreen * GenresPerScreen - GenresPerScreen + MusicGenreSelector <= MusicGenreData[1])
+				{
+				MusicGenre = CurrentMusicGenreScreen * GenresPerScreen - GenresPerScreen + MusicGenreSelector;
+				If (MusicGenre > MusicGenreData[2])
+					{
+					MusicGenre = MusicGenre - MusicGenreData[2];
+					MusicDBType = 1;
+					}
+				Else
+					{
+					MusicDBType = 0;
+					}
+				TotalMusicTitles = MusicTitlesInGenre[MusicGenre + (MusicDBType * MusicGenreData[2])];
+				CurrentMusicTitleIndex = 1;
+				Call NewMusicTitleScreen();
+				}
+			}
+		}
+	}
+
+//Radio Genre Screens
+PUSH FirstRadioGenre
+	{
+	CurrentRadioGenreScreen = 1;         	
+	Call NewRadioGenreScreen();
+	} 
+                                                                                                                           
+PUSH LastRadioGenre
+	{
+	CurrentRadioGenreScreen = RadioGenreData[4];
+	Call NewRadioGenreScreen();
+	}
+   
+PUSH NextRadioGenre
+	{
+	If (CurrentRadioGenreScreen < RadioGenreData[4])
+		{
+		CurrentRadioGenreScreen = CurrentRadioGenreScreen + 1;
+		Call NewRadioGenreScreen();
+		}
+	}
+    	
+PUSH PrevRadioGenre
+	{
+	If(CurrentRadioGenreScreen > 1)
+		{
+		CurrentRadioGenreScreen = CurrentRadioGenreScreen - 1;
+		Call NewRadioGenreScreen();
+		}
+    }
+
+CHANGE RadioGenreSelector
+	{
+	Switch(RadioGenreSelector)
+		{
+		Case(0):                             // View All
+			{
+			RadioGenre = 1;
+			RadioDBType = 0;
+			TotalRadioTitles = RadioTitlesInGenre[RadioGenre + (RadioDBType * RadioGenreData[2])];
+			CurrentRadioTitleIndex = 1;
+			Call NewRadioTitleScreen();
+			}
+		Default:
+			{
+			If (CurrentRadioGenreScreen * GenresPerScreen - GenresPerScreen + RadioGenreSelector <= RadioGenreData[1])
+				{
+				RadioGenre = CurrentRadioGenreScreen * GenresPerScreen - GenresPerScreen + RadioGenreSelector;
+				If (RadioGenre > RadioGenreData[2])
+					{
+					RadioGenre = RadioGenre - RadioGenreData[2];
+					RadioDBType = 1;
+					}
+				Else
+					{
+					RadioDBType = 0;
+					}
+				TotalRadioTitles = RadioTitlesInGenre[RadioGenre + (RadioDBType * RadioGenreData[2])];
+				CurrentRadioTitleIndex = 1;
+				Call NewRadioTitleScreen();
+				}
+			}
+		}
+	}
+
+//Movie Genre Screens
+PUSH FirstMovieGenre
+	{
+	CurrentMovieGenreScreen = 1;         	
+	Call NewMovieGenreScreen();
+	} 
+                                                                                                                           
+PUSH LastMovieGenre
+	{
+	CurrentMovieGenreScreen = MovieGenreData[4];
+	Call NewMovieGenreScreen();
+	}
+   
+PUSH NextMovieGenre
+	{
+	If (CurrentMovieGenreScreen < MovieGenreData[4])
+		{
+		CurrentMovieGenreScreen = CurrentMovieGenreScreen + 1;
+		Call NewMovieGenreScreen();}
+	}
+    	
+PUSH PrevMovieGenre
+	{
+	If(CurrentMovieGenreScreen > 1)
+		{
+		CurrentMovieGenreScreen = CurrentMovieGenreScreen - 1;
+		Call NewMovieGenreScreen();}           
+    }
+
+CHANGE MovieGenreSelector
+	{
+	Switch(MovieGenreSelector)
+		{
+		Case(0):                             // View All
+			{
+			MovieGenre = 1;
+			MovieDBType = 0;
+			TotalMovieTitles = MovieTitlesInGenre[MovieGenre + (MovieDBType * MovieGenreData[2])];
+			CurrentMovieTitleIndex = 1;
+			Call NewMovieTitleScreen();
+			}
+		Default:
+			{
+			If (CurrentMovieGenreScreen * GenresPerScreen - GenresPerScreen + MovieGenreSelector <= MovieGenreData[1])
+				{
+				MovieGenre = CurrentMovieGenreScreen * GenresPerScreen - GenresPerScreen + MovieGenreSelector;
+				If (MovieGenre > MovieGenreData[2])
+					{
+					MovieGenre = MovieGenre - MovieGenreData[2];
+					MovieDBType = 1;
+					}
+				Else
+					{
+					MovieDBType = 0;
+					}
+				TotalMovieTitles = MovieTitlesInGenre[MovieGenre + (MovieDBType * MovieGenreData[2])];
+				CurrentMovieTitleIndex = 1;
+				Call NewMovieTitleScreen();
+				}
+			}
+		}
+	}
+
+//Music Title Screens
+PUSH FirstMusicTitle
+	{	
+	CurrentMusicTitleIndex = 1;
+	Call NewMusicTitleScreen();
+	}                                                                                                                                    
+
+PUSH LastMusicTitle
+	{	
+	If (TotalMusicTitles - TitlesPerScreen s> 0)
+		{
+		CurrentMusicTitleIndex = TotalMusicTitles - TitlesPerScreen + 1;
+		Call NewMusicTitleScreen();
+		}
+	else
+		{
+		CurrentMusicTitleIndex = 1;
+		Call NewMusicTitleScreen();
+		}
+	}                                                                                                                                    
+	 
+PUSH NextMusicTitle
+	{
+	If (CurrentMusicTitleIndex + TitlesPerScreen - 1 < TotalMusicTitles)
+		{
+		CurrentMusicTitleIndex = CurrentMusicTitleIndex + TitlesPerScreen;
+		Call NewMusicTitleScreen();
+		}
+	}                                                                                                                                    
+
+PUSH PrevMusicTitle
+	{
+	If (CurrentMusicTitleIndex - TitlesPerScreen s> 0)
+		{
+		CurrentMusicTitleIndex = CurrentMusicTitleIndex - TitlesPerScreen;
+		Call NewMusicTitleScreen();
+		}
+	else If (CurrentMusicTitleIndex > 0)
+		{
+		CurrentMusicTitleIndex = 1;
+		Call NewMusicTitleScreen();
+		}
+	}
+	
+CHANGE MusicTitleSelector
+	{
+	If (CurrentMusicTitleIndex + MusicTitleSelector - 2 < TotalMusicTitles)
+		{
+		SelectedMusicTitle = CurrentMusicTitleIndex + MusicTitleSelector - 1;
+		SelectedMusicGenre = MusicGenre;
+		SelectedMusicDBType = MusicDBType;
+		SelectedMusicTitle$ = MusicTitleNames$[MusicTitleSelector];
+		TotalTracks = TracksInTitle[MusicTitleSelector];
+		If ((TracksInTitle[MusicTitleSelector] mod TracksPerScreen) > 0)
+			TotalTrackScreens = TracksInTitle[MusicTitleSelector] / TracksPerScreen + 1;
+		else
+			TotalTrackScreens = TracksInTitle[MusicTitleSelector] / TracksPerScreen;
+		Database = 1;
+		Makestring(Escient_Tx$, "ESCX20040050002%02d0004%04d0004%04d0004%04d0004%04d\r",  Database + SelectedMusicDBType, SelectedMusicGenre, SelectedMusicTitle, 1, TotalTracks);
+		MakeString(StringOut$[MusicTrackInfo], "  Tracks for %s  ", SelectedMusicTitle$);
+		}
+	}
+
+//Radio Title Screens
+PUSH FirstRadioTitle
+	{	
+	CurrentRadioTitleIndex = 1;
+	Call NewRadioTitleScreen();
+	}                                                                                                                                    
+
+PUSH LastRadioTitle
+	{	
+	If (TotalRadioTitles - TitlesPerScreen s> 0)
+		{
+		CurrentRadioTitleIndex = TotalRadioTitles - TitlesPerScreen + 1;
+		Call NewRadioTitleScreen();
+		}
+	else
+		{
+		CurrentRadioTitleIndex = 1;
+		Call NewRadioTitleScreen();
+		}
+	}                                                                                                                                    
+	 
+PUSH NextRadioTitle
+	{
+	If (CurrentRadioTitleIndex + TitlesPerScreen - 1 < TotalRadioTitles)
+		{
+		CurrentRadioTitleIndex = CurrentRadioTitleIndex + TitlesPerScreen;
+		Call NewRadioTitleScreen();
+		}
+	}                                                                                                                                    
+
+PUSH PrevRadioTitle
+	{
+	If (CurrentRadioTitleIndex - TITLESPERSCREEN s> 0)
+		{
+		CurrentRadioTitleIndex = CurrentRadioTitleIndex - TitlesPerScreen;
+		Call NewRadioTitleScreen();
+		}
+	else If (CurrentRadioTitleIndex > 0)
+		{
+		CurrentRadioTitleIndex = 1;
+		Call NewRadioTitleScreen();
+		}
+	}
+	
+CHANGE RadioTitleSelector
+	{
+	If (CurrentRadioTitleIndex + RadioTitleSelector - 2 < TotalRadioTitles)
+		{
+		RadioTitle = CurrentRadioTitleIndex + RadioTitleSelector - 1;
+		StringOut$[CurrentRadioInfo[1]] = RadioTitleNames$[RadioTitleSelector];;
+		StringOut$[CurrentRadioInfo[2]] = "Not Available";
+		StringOut$[CurrentRadioInfo[3]] = "Not Available";
+		StringOut$[CurrentRadioInfo[4]] = "Initializing";
+		PlayState = 2;
+		Database = 3;
+		Makestring(Escient_Tx$, "ESCX20050040002%02d0004%04d0004%04d00040001\r", Database + RadioDBType, RadioGenre, RadioTitle);
+		}
+	}
+
+//Movie Title Screens
+PUSH FirstMovieTitle
+	{	
+	CurrentMovieTitleIndex = 1;
+	Call NewMovieTitleScreen();
+	}                                                                                                                                    
+
+PUSH LastMovieTitle
+	{	
+	If (TotalMovieTitles - TitlesPerScreen s> 0)
+		{
+		CurrentMovieTitleIndex = TotalMovieTitles - TitlesPerScreen + 1;
+		Call NewMovieTitleScreen();
+		}
+	else
+		{
+		CurrentMovieTitleIndex = 1;
+		Call NewMovieTitleScreen();
+		}
+	}                                                                                                                                    
+	 
+PUSH NextMovieTitle
+	{
+	If (CurrentMovieTitleIndex + TitlesPerScreen - 1 < TotalMovieTitles)
+		{
+		CurrentMovieTitleIndex = CurrentMovieTitleIndex + TitlesPerScreen;
+		Call NewMovieTitleScreen();
+		}
+	}                                                                                                                                    
+
+PUSH PrevMovieTitle
+	{
+	If (CurrentMovieTitleIndex - TitlesPerScreen s> 0)
+		{
+		CurrentMovieTitleIndex = CurrentMovieTitleIndex - TitlesPerScreen;
+		Call NewMovieTitleScreen();
+		}
+	else If (CurrentMovieTitleIndex > 0)
+		{
+		CurrentMovieTitleIndex = 1;
+		Call NewMovieTitleScreen();
+		}
+	}
+	
+CHANGE MovieTitleSelector
+	{
+	If (CurrentMovieTitleIndex + MovieTitleSelector - 2 < TotalMovieTitles)
+		{
+		SelectedMovieTitle = CurrentMovieTitleIndex + MovieTitleSelector - 1;
+		SelectedMovieGenre = MovieGenre;
+		SelectedMovieDBType = MovieDBType;
+		SelectedMovieInfo$[1] = MovieTitleNames$[MovieTitleSelector];
+		StringOut$[MovieInfo[1]] = SelectedMovieInfo$[1];
+		For (i = 2 to 7) StringOut$[MovieInfo[i]] = "";
+		Database = 5;
+		Makestring(Escient_Tx$, "ESCX20090040002%02d0004%04d0004%04d0004%04d\r", Database + SelectedMovieDBType, SelectedMovieGenre, SelectedMovieTitle, SelectedMovieTitle);
+		}
+	}
+
+PUSH FirstMusicTrack
+	{
+	CurrentTrackScreen = 1;
+    Call NewTrackScreen();
+	}
+
+PUSH LastMusicTrack
+	{
+	CurrentTrackScreen = TotalTrackScreens;
+	Call NewTrackScreen();
+	}
+	
+PUSH PrevMusicTrack
+	{
+	If (CurrentTrackScreen > 1)
+		{
+		CurrentTrackScreen = CurrentTrackScreen - 1;
+		Call NewTrackScreen();
+		}
+	}
+	
+PUSH NextMusicTrack
+	{
+	If(CurrentTrackScreen < TotalTrackScreens)
+		{
+		CurrentTrackScreen = CurrentTrackScreen + 1;
+		Call NewTrackScreen();
+		}
+	}  
+
+CHANGE MusicTrackSelector
+	{
+	IF (CurrentTrackScreen * TracksPerScreen - TracksPerScreen + MusicTrackSelector - 1 < TotalTracks)
+		{
+		Track = CurrentTrackScreen * TracksPerScreen - TracksPerScreen + MusicTrackSelector;
+		CurrentMusicTitle$ = SelectedMusicTitle$;
+		Pointer = Find(" - ", SelectedMusicTitle$);
+		StringOut$[CurrentMusicInfo[1]] = left(SelectedMusicTitle$, Pointer - 1);
+		StringOut$[CurrentMusicInfo[2]] = mid(SelectedMusicTitle$, Pointer + 3, len(SelectedMusicTitle$) - Pointer + 3);
+		MakeString(StringOut$[CurrentMusicInfo[3]], "%d. %s", Track, TrackCache$[Track]);
+		StringOut$[CurrentMusicInfo[4]] = "0:00";
+		MusicTrack = Track;
+		CurrentTrackNumberInt$ = ItoA(Track);
+		TotalMusicTracks = TotalTracks;
+		CurrentMusicTitle = SelectedMusicTitle;
+		CurrentMusicGenre = SelectedMusicGenre;
+		CurrentMusicDBType = SelectedMusicDBType;
+	    PlayState = 1;
+		processlogic();
+		Database = 1;
+		Makestring(Escient_Tx$, "ESCX20050040002%02d0004%04d0004%04d0004%04d\r", Database + SelectedMusicDBType, SelectedMusicGenre, SelectedMusicTitle, Track);
+		}
+	}
+
+PUSH SyncMusicInfo
+	{
+	SelectedMusicTitle = CurrentMusicTitle;
+	SelectedMusicGenre = CurrentMusicGenre;
+	SelectedMusicDBType = CurrentMusicDBType;
+	SelectedMusicTitle$ = CurrentMusicTitle$;
+	TotalTracks = TotalMusicTracks;
+	If ((TotalTracks mod TracksPerScreen) > 0)
+		TotalTrackScreens = TotalTracks / TracksPerScreen + 1;
+	else
+		TotalTrackScreens = TotalTracks / TracksPerScreen;
+	Database = 1;
+	Makestring(Escient_Tx$, "ESCX20040050002%02d0004%04d0004%04d0004%04d0004%04d\r",  Database + CurrentMusicDBType, CurrentMusicGenre, CurrentMusicTitle, 1, TotalTracks);
+	MakeString(StringOut$[MusicTrackInfo], "  Tracks for %s  ", SelectedMusicTitle$);	
+	} 
+
+PUSH MovieSelector
+	{
+	CurrentMovieTitle$ = SelectedMovieInfo$[1];
+	For (i = 1 to 5) StringOut$[CurrentMovieInfo[i]] = SelectedMovieInfo$[i];
+	CurrentMovieTitle = SelectedMovieTitle;
+	CurrentMovieGenre = SelectedMovieGenre;
+	CurrentMovieDBType = SelectedMovieDBType;
+    PlayState = 1;
+	processlogic();
+	Database = 5;
+	Makestring(Escient_Tx$, "ESCX20050040002%02d0004%04d0004%04d00040001\r", Database + SelectedMovieDBType, SelectedMovieGenre, SelectedMovieTitle);
+	}
+
+Push SyncMovieInfo
+	{
+	SelectedMovieTitle = CurrentMovieTitle;
+	SelectedMovieGenre = CurrentMovieGenre;
+	SelectedMovieDBType = CurrentMovieDBType;
+	SelectedMovieInfo$[1] = CurrentMovieTitle$;
+	StringOut$[MovieInfo[1]] = CurrentMovieTitle$;
+	For (i = 2 to 7) StringOut$[MovieInfo[i]] = "";
+	Database = 5;
+	Makestring(Escient_Tx$, "ESCX20090040002%02d0004%04d0004%04d0004%04d\r", Database + CurrentMovieDBType, CurrentMovieGenre, CurrentMovieTitle, CurrentMovieTitle);
+	}
+
+PUSH PrevMovieDecription
+	{
+	MDPointer = MDPointer - 1;
+	If (MDPointer < 1) MDPointer = 1;
+	StringOut$[MovieInfo[7]] = SelectedMovieDescription$[MDPointer];
+	}
+
+PUSH NextMovieDescription
+	{
+	MDPointer = MDPointer + 1;
+	If (MDPointer > MDPointerLimit) MDPointer = MDPointerLimit;
+	StringOut$[MovieInfo[7]] = SelectedMovieDescription$[MDPointer];
+	}
+
+PUSH TitleSearch
+	{
+	Search1$ = "*** Searching ***";
+	If (len(TitleSearch$) = 1) 
+		SearchString$ = upper(TitleSearch$);
+	Else
+		SearchString$ = "";
+	Switch (Database)
+		{
+		Case(1): Makestring(Escient_Tx$, "ESCX20070030002%02d0004%04d%04d%s\r", Database + MusicDBType, MusicGenre, len(TitleSearch$), TitleSearch$);
+		Case(3): Makestring(Escient_Tx$, "ESCX20070030002%02d0004%04d%04d%s\r", Database + RadioDBType, RadioGenre, len(TitleSearch$), TitleSearch$);
+		Case(5): Makestring(Escient_Tx$, "ESCX20070030002%02d0004%04d%04d%s\r", Database + MovieDBType, MovieGenre, len(TitleSearch$), TitleSearch$);
+		}
+	}
+
+PUSH ErrorContinue
+	{
+	ResendLastCommand = 1;
+	Escient_Tx$ = "ESCX1055\r";	
+	}
+
+CHANGE Escient_Rx$
+	{
+	If (RxOk = 1)
+		{
+		RxOk = 0;
+		While(Find("\x0D", Escient_Rx$) > 0) 
+    		{
+    		InBufferString$ = Remove("\x0D", Escient_Rx$);
+			Print("Rx: \n%s\n", InBufferString$);
+    		CommandRx = atoi(mid(InBufferString$, 5, 2));            // Determine Command Group
+    		SubCommandRx = atoi(mid(InBufferString$, 7, 2));         // Determine Sub Command
+    		If (len(InBufferString$) > 9)                              // Determine if additional data
+    			{
+    			NumberOfItemsRx = Atoi(mid(InBufferString$, 9, 3));  // Determine number of data items
+    			Data1LengthRx = atoi(mid(InBufferString$, 12, 4));   // Length of data item 1
+    			Data1Rx$ = left(mid(InBufferString$, 16, Data1LengthRx), MaxDataLength);  // Data item 1
+    			If (NumberOfItemsRX > 1)       
+    				{
+    				Data2LengthRx = atoi(mid(InBufferString$, 16 + Data1LengthRx, 4));    // Length of data item 2
+    				Data2Rx$ = left(mid(InBufferString$, 20 + Data1LengthRx, Data2LengthRx), MaxDataLength);  // Data item 2
+    				Marker = 20 + Data1LengthRx + Data2LengthRx;
+    				}
+    			}
+    		Switch(CommandRx)
+    			{
+				Case(1):									//Command Response
+					{
+					Switch(SubCommandRx)
+						{
+						Case(1):
+							{
+							Switch (ResendLastCommand)
+								{
+								Case(1):
+									{
+									Escient_Tx$ = LastCommand$;
+									ResendLastCommand = 2;
+									}
+								Case(2):
+									{
+									ResendLastCommand = 0;
+									}
+								}
+							}
+						Case(8):
+							{
+							If (Len(SearchString$) = 1)
+								{
+								i = byte(SearchString$, 1);
+								i = i + 1;
+								If (i < 91)
+									{
+									SearchString$ = chr(i); 
+									Switch (Database)
+										{
+										Case(1): Makestring(Escient_Tx$, "ESCX20070030002%02d0004%04d%04d%s\r", Database + MusicDBType, MusicGenre, len(SearchString$), SearchString$);
+										Case(3): Makestring(Escient_Tx$, "ESCX20070030002%02d0004%04d%04d%s\r", Database + RadioDBType, RadioGenre, len(SearchString$), SearchString$);
+										}
+									}
+								Else
+									{
+									Search1$ = "No Match Found";
+									Pulse (200, SearchFailed);
+                                    Wait (200)
+									Search1$ = "";
+									}
+								}
+							Else
+								{
+								Search1$ = "No Match Found";
+								Pulse (200, SearchFailed);
+								Wait (200)
+								Search1$ = "";
+								}
+							}
+						Case(10):
+							{
+							Switch (ResendLastCommand)
+								{
+								Case(0):
+									{
+									Pulse (200, ErrorSubOn);
+									LastCommand$ = TempLastCommand$;
+									}
+								Case(1):
+									{
+									Escient_Tx$ = "ESCX1055\r";	
+									}
+								Case(2):
+									{
+									Escient_Tx$ = "ESCX1055\r";	
+									ResendLastCommand = 1;
+									}
+								}
+							}
+						}
+					}
+    			Case(2):                                    // Status
+    				{
+    				Switch(SubCommandRx)
+    					{
+    					Case(1):                             // Power Feedback
+    						{
+    						If (Data1Rx$ = "ON ")
+    							{
+    							PowerOnFb = 1;
+    							PowerOffFb = 0;
+    							}
+    						else If (Data1Rx$ = "OFF")
+    							{
+    							PowerOnFb = 0;
+    							PowerOffFb = 1;
+    							}   
+    						else If (Data1Rx$ = "RDY")
+    							{
+    							PowerOnFb = 0;
+    							PowerOffFb = 1;
+    							}
+    						}
+    					Case(2):							//Play Mode Changed
+    						{
+							Switch (Atoi(Data1Rx$))
+								{
+								Case (1): StringOut$[CurrentMusicInfo[5]] = "Normal";
+								Case (2): StringOut$[CurrentMusicInfo[5]] = "Repeat Track";
+								Case (3): StringOut$[CurrentMusicInfo[5]] = "Repeat Title";
+								Case (4): StringOut$[CurrentMusicInfo[5]] = "Repeat Group";
+								Case (5): StringOut$[CurrentMusicInfo[5]] = "Random Title";
+								Case (6): StringOut$[CurrentMusicInfo[5]] = "Random Group";
+								}
+    						}
+    					Case(3):
+    						{
+    						GuideView = Atoi(Data1Rx$);      // Sort Order
+    						}
+    					Case(4):                             // Playing information
+   							{
+   	   						PlayState = atoi(Data1Rx$);
+    						If (Data2Rx$ <> CurrentTrackNumberInt$)
+    							{
+								DataChanged = 1;
+    							CurrentTrackNumberInt$ = Data2Rx$;
+    							}
+    						LengthRx = atoi(mid(InBufferString$, Marker, 4));
+    						Data2Rx$ = left(mid(InBufferString$, Marker + 4, LengthRx), MaxDataLength);
+    						If (Data2Rx$ <> CurrentArtistInt$)
+    							{
+								DataChanged = 1;
+    							CurrentArtistInt$ = Data2Rx$;
+    							}
+    						Marker = Marker + 4 + LengthRx;
+    						LengthRx = atoi(mid(InBufferString$, Marker, 4));
+    						Data2Rx$ = left(mid(InBufferString$, Marker + 4, LengthRx), MaxDataLength);
+    						If (Data2Rx$ <>  CurrentTitleInt$)
+    							{
+								DataChanged = 1;
+    							CurrentTitleInt$ = Data2Rx$;
+    							}
+    						Marker = Marker + 4 + LengthRx;
+    						LengthRx = atoi(mid(InBufferString$, Marker, 4));
+    						Data2Rx$ = left(mid(InBufferString$, Marker + 4, LengthRx), MaxDataLength);
+    						If (Data2Rx$ <> CurrentTrackint$)
+    							{
+								DataChanged = 1;
+    							CurrentTrackInt$ = Data2Rx$;
+    							}
+							Switch (PlayState)
+								{
+								Case (1):					//Play
+									{
+		    						Marker = Marker + 4 + LengthRx;
+		    						LengthRx = atoi(mid(InBufferString$, Marker, 4));
+		    						Seconds = atoi(mid(InBufferString$, Marker + 4, LengthRx));
+		    						Minutes = Seconds / 60;
+		    						Seconds = Seconds mod 60;
+		    						If (ElapsedTimeStatus = 1) Makestring(StringOut$[CurrentMusicInfo[4]], "%d:%02d", Minutes, Seconds);
+									Else StringOut$[CurrentMusicInfo[4]] = "0:00";
+									processlogic();
+		    						Marker = Marker + 4 + LengthRx;
+		    						LengthRx = atoi(mid(InBufferString$, Marker, 4));
+		    						MediaType = atoi(mid(InBufferString$, Marker + 4, LengthRx));
+	
+									If (DataChanged = 1)
+										{
+										If (MediaType < 5) //Music Data
+											{
+											If (ElapsedTimeStatus = 1) Escient_Tx$ = "ESCX7002001000210\r";
+											Else Escient_Tx$ = "ESCX7002001000205\r";
+											If (Find(left(CurrentArtistInt$, MaxDataLength), CurrentMusicTitle$, 1) = 0)
+												{
+												Escient_Tx$ = "ESCX5004\r";
+												TempStringLong$ = CurrentArtistInt$ + " - " + CurrentTitleInt$;
+												CurrentMusicTitle$ = Left(TempStringLong$, MaxDataLength);
+												}
+			    							StringOut$[CurrentMusicInfo[1]] = left(CurrentArtistInt$, MaxDataLength);
+			    							StringOut$[CurrentMusicInfo[2]] = left(CurrentTitleInt$, MaxDataLength);
+											MakeString(StringOut$[CurrentMusicInfo[3]], "%d. %s", atoi(CurrentTrackNumberInt$), left(CurrentTrackInt$, MaxDataLength));
+											StringOut$[CurrentRadioInfo[4]] = "Stopped";
+											Source = 1;
+											}
+										Else If (MediaType = 5)
+											{
+											Escient_Tx$ = "ESCX7002001000205\r";
+											If (Find(left(CurrentTitleInt$, MaxDataLength), CurrentMovieTitle$, 1) = 0)
+												{
+												Escient_Tx$ = "ESCX5004\r";
+												}
+			    							StringOut$[CurrentMovieInfo[1]] = left(CurrentTitleInt$, MaxDataLength);
+											StringOut$[CurrentRadioInfo[4]] = "Stopped";
+											Source = 5;
+											}
+										Else If (MediaType = 6)
+											{
+											StringOut$[CurrentRadioInfo[4]] = "Streaming";
+											Escient_Tx$ = "ESCX7002001000205\r";
+											If (CurrentTitleInt$ = "")
+												{
+												If (NumberOfItemsRx = 7) StringOut$[CurrentRadioInfo[1]] = "Not Available";
+												}
+											Else
+												StringOut$[CurrentRadioInfo[1]] = left(CurrentTitleInt$, MaxDataLength);
+											If (CurrentArtistInt$ = "")
+												StringOut$[CurrentRadioInfo[2]] = "Not Available";
+											Else
+												StringOut$[CurrentRadioInfo[2]] = left(CurrentArtistInt$, MaxDataLength);
+											If (CurrentTrackInt$ = "")
+												StringOut$[CurrentRadioInfo[3]] = "Not Available";
+											Else
+												StringOut$[CurrentRadioInfo[3]] = left(CurrentTrackInt$, MaxDataLength);
+											Source = 3;
+											}
+										Datachanged = 0;
+										}
+									}
+								Case (2):					//Stop
+									{
+			    					Makestring(StringOut$[CurrentMusicInfo[4]], "%d:%02d", 0, 0);
+									StringOut$[CurrentRadioInfo[4]] = "Stopped";
+									}
+								Case (4): 
+									{
+									StringOut$[CurrentRadioInfo[4]] = "Locating Station";
+									Escient_Tx$ = "ESCX7002001000205\r";
+									If (CurrentTitleInt$ = "")
+										StringOut$[CurrentRadioInfo[1]] = "Not Available";
+									Else
+										StringOut$[CurrentRadioInfo[1]] = left(CurrentTitleInt$, MaxDataLength);
+									If (CurrentArtistInt$ = "")
+										StringOut$[CurrentRadioInfo[2]] = "Not Available";
+									Else
+										StringOut$[CurrentRadioInfo[2]] = left(CurrentArtistInt$, MaxDataLength);
+									If (CurrentTrackInt$ = "")
+										StringOut$[CurrentRadioInfo[3]] = "Not Available";
+									Else
+										StringOut$[CurrentRadioInfo[3]] = left(CurrentTrackInt$, MaxDataLength);
+									}
+								Case (5): StringOut$[CurrentRadioInfo[4]] = "Buffering Data";
+								Case (6): StringOut$[CurrentRadioInfo[4]] = "Station Not Found";
+								}
+							If ((PlayState = 4) || (PlayState = 5) || (PlayState = 6))
+								{
+								Source = 3;
+								}
+    						}
+    					Case(7):
+    						{
+    						DBChanged = 1;
+    						}
+    					}
+    				}
+    			Case(50):
+    				{
+    				Switch(SubCommandRx)
+    					{
+    					Case(1):
+    						{
+    						If (Data1Rx$ = "ON ")
+    							{
+    							PowerOnFb = 1;
+    							PowerOffFb = 0;
+    							}
+    						else If (Data1Rx$ = "OFF")
+    							{
+    							PowerOnFb = 0;
+    							PowerOffFb = 1;
+    							}
+    						else If (Data1Rx$ = "RDY")
+    							{
+    							PowerOnFb = 0;
+    							PowerOffFb = 1;
+    							} 
+    						}
+ 						Case(2):
+							{
+							Switch(atoi(Data1Rx$))
+								{
+								Case(1): StringOut$[CurrentMusicInfo[5]] = "Normal";
+								Case(2): StringOut$[CurrentMusicInfo[5]] = "Repeat Track";
+								Case(3): StringOut$[CurrentMusicInfo[5]] = "Repeat Title";
+								Case(4): StringOut$[CurrentMusicInfo[5]] = "Repeat Group";
+								Case(5): StringOut$[CurrentMusicInfo[5]] = "Random Title";
+								Case(6): StringOut$[CurrentMusicInfo[5]] = "Random Group";
+								}
+							}
+    					Case(3):
+    						{
+    						GuideView = Atoi(Data1Rx$);
+    						}
+						Case(4):
+							{
+							i = Atoi(Data2Rx$);
+    						LengthRx = atoi(mid(InBufferString$, Marker, 4));
+    						Data2Rx$ = left(mid(InBufferString$, Marker + 4, LengthRx), MaxDataLength);
+    						Marker = Marker + 4 + LengthRx;
+    						LengthRx = atoi(mid(InBufferString$, Marker, 4));
+    						Data2Rx$ = left(mid(InBufferString$, Marker + 4, LengthRx), MaxDataLength);
+							MediaType = atoi(Data2Rx$);
+							If (MediaType < 5) //Music
+								{
+								CurrentMusicTitle$ = Data1Rx$;
+								CurrentMusicTitle = i;
+								CurrentMusicGenre = 1;
+								CurrentMusicDBType = 0;
+								CurrentMusicUpdate = 1;
+								Makestring(Escient_Tx$, "ESCX2003004000201000400010004%04d0004%04d\r", CurrentMusicTitle, CurrentMusicTitle);
+								}
+							else If (MediaType = 5) //Movie
+								{
+								CurrentMovieTitle$ = left(Data1Rx$, MaxDataLength);
+								CurrentMovieTitle = i;
+								CurrentMovieGenre = 1;
+								CurrentMovieDBType = 0;
+								CurrentMovieUpdate = 1;
+								Makestring(Escient_Tx$, "ESCX2009004000205000400010004%04d0004%04d\r", CurrentMovieTitle, CurrentMovieTitle);
+								}
+							}
+    					}
+    				} 
+    			Case(20):                                    // Database Information
+    				{
+    				Switch(SubCommandRx)
+    					{
+    					Case(1):                             // Number of Genres
+    						{
+							If (DBType = 0)
+								{
+								Switch(Database)
+									{
+									Case(1): 
+										{
+										MusicGenreData[2]= atoi(Data1Rx$);
+										Makestring(Escient_Tx$, "ESCX20020030002%02d000400010004%04d\r",  Database, MusicGenreData[2]);
+										}
+									Case(3):
+										{
+										RadioGenreData[2]= atoi(Data1Rx$);
+										Makestring(Escient_Tx$, "ESCX20020030002%02d000400010004%04d\r",  Database, RadioGenreData[2]);
+										}
+									Case(5):
+										{
+										MovieGenreData[2]= atoi(Data1Rx$);
+										Makestring(Escient_Tx$, "ESCX20020030002%02d000400010004%04d\r",  Database, MovieGenreData[2]);
+										}
+									}
+								}
+                            else
+								{
+								Switch(Database)
+									{
+									Case(1): 
+										{
+										MusicGenreData[3] = atoi(Data1Rx$);
+										MusicGenreData[1]= MusicGenreData[2] + MusicGenreData[3];
+		                                If (MusicGenreData[1] > 256) MusicGenreData[1] = 256;
+			    						If((MusicGenreData[1] mod GenresPerScreen) > 0) 
+			    							MusicGenreData[4] = MusicGenreData[1] / GenresPerScreen + 1;
+			    						Else
+			    							MusicGenreData[4] = MusicGenreData[1] / GenresPerScreen;
+										Makestring(Escient_Tx$, "ESCX20020030002%02d000400010004%04d\r",  Database + 1, MusicGenreData[3]);
+										}
+									Case(3):
+										{
+										RadioGenreData[3] = atoi(Data1Rx$);
+										RadioGenreData[1]= RadioGenreData[2] + RadioGenreData[3];
+		                                If (RadioGenreData[1] > 256) RadioGenreData[1] = 256;
+			    						If((RadioGenreData[1] mod GenresPerScreen) > 0) 
+			    							RadioGenreData[4] = RadioGenreData[1] / GenresPerScreen + 1;
+			    						Else
+			    							RadioGenreData[4] = RadioGenreData[1] / GenresPerScreen;
+										Makestring(Escient_Tx$, "ESCX20020030002%02d000400010004%04d\r",  Database + 1, RadioGenreData[3]);
+										}
+									Case(5):
+										{
+										MovieGenreData[3] = atoi(Data1Rx$);
+										MovieGenreData[1]= MovieGenreData[2] + MovieGenreData[3];
+		                                If (MovieGenreData[1] > 256) MovieGenreData[1] = 256;
+			    						If((MovieGenreData[1] mod GenresPerScreen) > 0) 
+			    							MovieGenreData[4] = MovieGenreData[1] / GenresPerScreen + 1;
+			    						Else
+			    							MovieGenreData[4] = MovieGenreData[1] / GenresPerScreen;
+										Makestring(Escient_Tx$, "ESCX20020030002%02d000400010004%04d\r",  Database + 1, MovieGenreData[3]);
+										}
+									}
+								}
+    						}
+    					Case(2):                             // Genre Names (Cached)
+    						{
+    						Pointer = 12;
+       						For(i = 1 to NumberOfItemsRx / 2)
+       							{
+								LengthRx = Atoi(Mid(InBufferString$, Pointer, 4));
+								Switch(Database)
+									{
+									Case(1):
+										{
+		       							MusicTitlesInGenre[i  + (DBType * MusicGenreData[2])] = Atoi(Mid(InBufferString$, Pointer + 4, LengthRx));
+		       							GenreLength = Atoi(Mid(InBufferString$, Pointer + 4 + LengthRx, 4));
+       									Makestring(MusicGenreCache$[i  + (DBType * MusicGenreData[2])], "%s", left(Mid(InBufferString$, Pointer + LengthRx + 8, GenreLength), MaxDataLength));
+										If (DBType = 0 && MusicGenreCache$[i] = "Playlists") PlaylistGenre = i;
+										}
+									Case(3):
+										{
+		       							RadioTitlesInGenre[i  + (DBType * RadioGenreData[2])] = Atoi(Mid(InBufferString$, Pointer + 4, LengthRx));
+		       							GenreLength = Atoi(Mid(InBufferString$, Pointer + 4 + LengthRx, 4));
+       									Makestring(RadioGenreCache$[i  + (DBType * RadioGenreData[2])], "%s", left(Mid(InBufferString$, Pointer + LengthRx + 8, GenreLength), MaxDataLength));
+										}
+									Case(5):
+										{
+		       							MovieTitlesInGenre[i  + (DBType * MovieGenreData[2])] = Atoi(Mid(InBufferString$, Pointer + 4, LengthRx));
+		       							GenreLength = Atoi(Mid(InBufferString$, Pointer + 4 + LengthRx, 4));
+       									Makestring(MovieGenreCache$[i  + (DBType * MovieGenreData[2])], "%s", left(Mid(InBufferString$, Pointer + LengthRx + 8, GenreLength), MaxDataLength));
+										}
+									}
+       							Pointer = Pointer + 8 + LengthRx + GenreLength;
+								}
+							If (DBType = 0)
+								{
+								DBType = 1;
+								Makestring(Escient_Tx$, "ESCX20010010002%02d\r",  Database + 1);
+								}
+							else
+								{
+								DatabaseChanged = 0;
+								Switch(Database)
+									{
+									Case(1):
+										{
+			    						CurrentMusicGenreScreen = 1;
+			    						Call NewMusicGenreScreen();
+										DatabaseChanged = 1;
+										}
+									Case(3):
+										{
+			    						CurrentRadioGenreScreen = 1;
+			    						Call NewRadioGenreScreen();
+										DatabaseChanged = 2;
+										}
+									Case(5):
+										{
+			    						CurrentMovieGenreScreen = 1;
+			    						Call NewMovieGenreScreen();
+										DatabaseChanged = 3;
+										}
+									}
+		 						DBType = 0;
+								}
+							}
+						Case(3):							// Title Names (Non-Cached)
+							{
+							Pointer = 12;
+							If (NumberOfItemsRx > TitlesPerScreen * 2) NumberOfItemsRx = TitlesPerScreen * 2;
+							If (CurrentMusicUpdate = 1)
+								{
+								LengthRx = Atoi(Mid(InBufferString$, Pointer, 4));
+								TotalMusicTracks = Atoi(Mid(InBufferString$, Pointer + 4, LengthRx));
+								CurrentMusicUpdate = 0;
+								}
+							else
+								{
+								For(i = 1 to NumberOfItemsRx / 2)
+									{
+									LengthRx = Atoi(Mid(InBufferString$, Pointer, 4));
+									If (Database = 1) TracksInTitle[i] = Atoi(Mid(InBufferString$, Pointer + 4, LengthRx));
+									Pointer = Pointer + 4 + LengthRx;
+									TitleLength = Atoi(Mid(InBufferString$, Pointer, 4));
+									Pointer = Pointer + 4;
+									Switch (Database)
+										{
+										Case(1): 
+											{
+											Makestring(MusicTitleNames$[i], "%s", Left(Mid(InBufferString$, Pointer, TitleLength), MaxDataLength));
+											StringOut$[MusicTitles[i]] = MusicTitleNames$[i];
+											}
+										Case(3):
+											{
+											Makestring(RadioTitleNames$[i], "%s", Left(Mid(InBufferString$, Pointer, TitleLength), MaxDataLength));
+											StringOut$[RadioTitles[i]] = RadioTitleNames$[i];
+											}
+										Case(5):
+											{
+											Makestring(MovieTitleNames$[i], "%s", Left(Mid(InBufferString$, Pointer, TitleLength), MaxDataLength));
+											StringOut$[MovieTitles[i]] = MovieTitleNames$[i];
+											}
+										}
+									Pointer = Pointer + TitleLength;
+									processlogic();
+									}
+								TitlesToClear = TitlesPerScreen - NumberOfItemsRx / 2;
+								If(TitlesToClear > 0)
+									{
+									For(i = TitlesPerScreen - TitlesToClear + 1 to TitlesPerScreen)
+										{
+										Switch (Database)
+											{
+											Case(1): StringOut$[MusicTitles[i]] = "";
+											Case(3): StringOut$[RadioTitles[i]] = "";
+											Case(5): StringOut$[MovieTitles[i]] = "";
+											}
+										TracksInTitle[i] = 0;
+										processlogic();
+										}
+									}
+								}  
+							}
+						Case(4):							//Track Names (Cached)
+							{
+							Pointer = 12; 
+							For(i = 1 to NumberOfItemsRx)
+								{
+								TrackLength = Atoi(Mid(InBufferString$, Pointer, 4));
+								Makestring(TrackCache$[i], "%s", Left(Mid(InBufferString$, Pointer + 4, TrackLength), MaxDataLength));
+								Pointer = Pointer + 4 + TrackLength;
+								}
+							CurrentTrackScreen = 1;
+							Call NewTrackScreen();
+							}
+						Case(7):							//Search Found
+							{
+							SearchFound = 1;
+							processlogic();
+							SearchFound = 0;
+							SearchString$ = "";
+							Switch (Database)
+								{
+								Case (1):
+									{
+									CurrentMusicTitleIndex = atoi(Data2Rx$);
+									Call NewMusicTitleScreen();
+									}
+								Case (3):
+									{
+									CurrentRadioTitleIndex = atoi(Data2Rx$);
+									Call NewRadioTitleScreen();
+									}
+								Case (5):
+									{
+									CurrentMovieTitleIndex = atoi(Data2Rx$);
+									Call NewMovieTitleScreen();
+									}
+								}
+							}
+						Case(9):
+							{
+							Pointer = 12;
+							LengthRx = Atoi(Mid(InBufferString$, Pointer, 4));
+							TempMovieInfo$[4] = Left(Mid(InBufferString$, Pointer + 4, LengthRx), MaxDataLength);
+
+							Pointer = Pointer + 4 + LengthRx;
+							LengthRx = Atoi(Mid(InBufferString$, Pointer, 4));
+							TempMovieInfo$[3] = Left(Mid(InBufferString$, Pointer + 4, LengthRx), MaxDataLength);
+
+							Pointer = Pointer + 4 + LengthRx;
+							LengthRx = Atoi(Mid(InBufferString$, Pointer, 4));
+							TempMovieCast$ = Left(Mid(InBufferString$, Pointer + 4, LengthRx), 200);
+
+							TempMovieInfo$[5] = MovieGenreCache$[MovieDBType * MovieGenreData[2] + MovieGenre];
+
+							If (CurrentMovieUpdate = 0)
+								{
+								MDPointer = 1;
+								MovieDescriptionPointer = MDPointer;
+	
+								Pointer = Pointer + 4 + LengthRx;
+	                            LengthRx = Atoi(Mid(InBufferString$, Pointer, 4));
+								Pointer = Pointer + 4;
+								InBufferString$ = Mid(InBufferString$, Pointer, Len(InBufferString$) - Pointer + 1);
+								Pointer = 1;
+								Marker = 240;
+								i = 1;
+								While (Pointer + Marker < LengthRx && i < 16)
+									{
+									TempString$ = "x";
+									J = 0;
+									While ((TempString$ <> " ") && (j < Marker) && (Pointer + j < LengthRx))
+										{
+										j = j + 1;
+										TempString$ = Mid(InBufferString$, Pointer + Marker - j, 1);
+										}
+									SelectedMovieDescription$[i] = Mid(InBufferString$, Pointer, Marker - j);
+									Pointer = Pointer + Marker - j + 1;
+									i = i + 1;
+									}
+								SelectedMovieDescription$[i] = Mid(InBufferString$, Pointer, LengthRx - Pointer + 1);
+								MDPointerLimit = i;
+								}
+	
+							If (Len(TempMovieCast$) > 50)
+								{
+								TempStringLong$ = TempMovieCast$ + ", ";
+								LengthRx = Len(TempStringLong$);
+								Pointer = 1;
+								While (Pointer < 50)
+									{
+									Pointer = Find(", ", TempStringLong$, Pointer + 1);
+									If (Pointer < 50) Marker = Pointer;
+									}
+								TempMovieInfo$[2] = Left(Left(TempStringLong$, Marker - 1), MaxDataLength);
+								TempMovieCast$ = Left(TempStringLong$, Marker - 1);
+								TempStringLong$ = Mid(TempStringLong$, Marker + 2, LengthRx);
+								If (Len(TempStringLong$) > 50)
+									{
+									TempStringLong$ = TempStringLong$ + ", ";
+									LengthRx = Len(TempStringLong$);
+									Pointer = 1;
+									While (Pointer < 50)
+										{
+										Pointer = Find(", ", TempStringLong$, Pointer + 1);
+										If (Pointer < 50) Marker = Pointer;
+										}
+									TempStringLong$ = Left(TempStringLong$, Marker - 1);
+									}
+								Else
+									{
+									TempStringLong$ = Left(TempStringLong$, Len(TempStringLong$) - 1);
+									}
+	
+								}
+							Else
+								{
+								TempStringLong$ = "";
+								}
+                            
+							If (CurrentMovieUpdate = 0)
+								{
+								For (i = 2 to 5) SelectedMovieInfo$[i] = TempMovieInfo$[i];
+								SelectedMovieCast$ = TempMovieCast$;
+								StringOut$[MovieInfo[2]] = SelectedMovieCast$;
+								StringOut$[MovieInfo[3]] = TempStringLong$;
+								StringOut$[MovieInfo[4]] = Left(SelectedMovieInfo$[3], 12);
+								StringOut$[MovieInfo[5]] = Left(SelectedMovieInfo$[4], 6);
+								StringOut$[MovieInfo[6]] = Left(SelectedMovieInfo$[5], 30);
+								StringOut$[MovieInfo[7]] = SelectedMovieDescription$[1];
+								}
+							Else
+								{
+    							StringOut$[CurrentMovieInfo[2]] = TempMovieInfo$[2];
+    							StringOut$[CurrentMovieInfo[3]] = Left(TempMovieInfo$[3], 12);
+    							StringOut$[CurrentMovieInfo[4]] = Left(TempMovieInfo$[4], 6);
+    							StringOut$[CurrentMovieInfo[5]] = Left(SelectedMovieInfo$[5], 15);
+								CurrentMovieUpdate = 0;
+								}
+							}
+						}
+					}
+				}
+			}  
+		RxOk = 1;
+		}
+	}
+
+CHANGE TempLastCommand$
+	{
+	Print("Tx: \n%s\n", TempLastCommand$);
+	}
+
+RELEASE TouchUp
+	{
+     	 NewX = (NavigateX * 720)/65536;
+		 NewY = ((65536-NavigateY) * 480)/65536;
+		 Makestring(Escient_Tx$, "ESCX10060020003%03d0003%03d\r", NewX, NewY);
+		 //Print ("ESCX10060020003%03d0003%03d\r", NewX, NewY);
+		  
+	}
+
+
+/***********************************************************************
+  Main()
+  Uncomment and place one-time startup code here
+  (This code will get called when the system starts up)
+***********************************************************************/
+
+Function Main()
+	{
+    RxOk = 1;
+	ResendLastCommand = 0;
+    clearbuffer(InBufferString$);
+    clearbuffer(Escient_Rx$);
+	DBChanged = 1;
+    
+	For (i = 1 to 5) CurrentMusicInfo[i] = i;
+	For (i = 1 to MAXGENRESPERSCREEN) MusicGenreOut[i] = i + 5;
+	MusicTitleInfo = MAXGENRESPERSCREEN + 6;
+	For (i = 1 to MAXTITLESPERSCREEN) MusicTitles[i] = i + MAXGENRESPERSCREEN + 6;
+    MusicTrackInfo = MAXGENRESPERSCREEN + MAXTRACKSPERSCREEN + 7;
+	For (i = 1 to MAXTRACKSPERSCREEN) MusicTracks[i] = i + MAXGENRESPERSCREEN + MAXTITLESPERSCREEN + 7;
+
+	For (i = 1 to 4) CurrentRadioInfo[i] = i + MAXGENRESPERSCREEN + MAXTITLESPERSCREEN + MAXTRACKSPERSCREEN + 7;
+	For (i = 1 to MAXGENRESPERSCREEN) RadioGenreOut[i] = i + MAXGENRESPERSCREEN  + MAXTITLESPERSCREEN + MAXTRACKSPERSCREEN + 11;
+	RadioTitleInfo = (MAXGENRESPERSCREEN * 2) + MAXTITLESPERSCREEN + MAXTRACKSPERSCREEN + 12;
+	For (i = 1 to MAXTITLESPERSCREEN) RadioTitles[i] = i + (MAXGENRESPERSCREEN * 2) + MAXTITLESPERSCREEN + MAXTRACKSPERSCREEN + 12;
+
+	For (i = 1 to 5) CurrentMovieInfo[i] = i + (MAXGENRESPERSCREEN * 2) + (MAXTITLESPERSCREEN * 2) + MAXTRACKSPERSCREEN + 12;
+	For (i = 1 to MAXGENRESPERSCREEN) MovieGenreOut[i] = i + (MAXGENRESPERSCREEN * 2) + (MAXTITLESPERSCREEN * 2) + MAXTRACKSPERSCREEN + 17;
+	MovieTitleInfo = (MAXGENRESPERSCREEN * 3) + (MAXTITLESPERSCREEN * 2) + MAXTRACKSPERSCREEN + 18;
+	For (i = 1 to MAXTITLESPERSCREEN) MovieTitles[i] = i + (MAXGENRESPERSCREEN * 3) + (MAXTITLESPERSCREEN * 2) + MAXTRACKSPERSCREEN + 18;
+	For (i = 1 to 7) MovieInfo[i] = i  + (MAXGENRESPERSCREEN * 3) + (MAXTITLESPERSCREEN * 3) + MAXTRACKSPERSCREEN + 18;
+	}
+

@@ -1,0 +1,15 @@
+[Entries]
+AV2=tcp 10.0.1.145
+Family Rm Panel=AV2:cresnet 04
+Game Rm Panel=AV2:cresnet 03
+Theater Panel=AV2:cresnet 08
+
+[Settings]
+DefaultEntry=
+
+[Comments]
+AV2=
+Family Rm Panel=
+Game Rm Panel=
+Theater Panel=
+

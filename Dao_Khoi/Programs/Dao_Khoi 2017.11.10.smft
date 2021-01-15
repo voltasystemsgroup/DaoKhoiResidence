@@ -1,0 +1,42 @@
+<Device Model="AV2">
+   <Network Type="Ethernet" Id="08"/>
+   <Network Type="Cresnet" Id="09">
+      <Device Model="STX-1700C,STX-1700CW," DeviceId="03" Name="STX-1700C (Cresnet) Game Rm"/>
+      <Device Model="STX-1700C,STX-1700CW," DeviceId="04" Name="STX-1700C (Cresnet) Family Rm"/>
+      <Device Model="CNRFGW" DeviceId="11" Name="CNRFGWA-418 ML-600 Master Bedroom">
+         <Network Type="RF"/>
+      </Device>
+      <Device Model="TPS-2000L,TPS-2000," DeviceId="12" Name="TPS-2000L Master Bedroom"/>
+      <Device Model="CNRFGW" DeviceId="24" Name="CNRFGWA">
+         <Network Type="RF"/>
+      </Device>
+      <Device Model="CHV-TSTATA,CHV-THSTATA," DeviceId="2A" Name="Crestron CHV-THSTAT Office"/>
+      <Device Model="CHV-TSTATA,CHV-THSTATA," DeviceId="2B" Name="Crestron CHV-THSTAT Gym"/>
+      <Device Model="CHV-TSTATA,CHV-THSTATA," DeviceId="2C" Name="Crestron CHV-THSTAT Guest Rm"/>
+      <Device Model="CHV-TSTATA,CHV-THSTATA," DeviceId="2D" Name="Crestron CHV-THSTAT Great Rm"/>
+      <Device Model="CHV-TSTATA,CHV-THSTATA," DeviceId="2E" Name="Crestron CHV-THSTAT Family Rm"/>
+      <Device Model="CHV-TSTATA,CHV-THSTATA," DeviceId="2F" Name="Crestron CHV-THSTAT Master Bedroom"/>
+      <Device Model="CHV-TSTATA,CHV-THSTATA," DeviceId="30" Name="Crestron CHV-THSTAT Game Rm"/>
+      <Device Model="CNAMPX-12X60" DeviceId="3F" Name="CNAMPX-12x60"/>
+      <Device Model="CNX-PVID8x4" DeviceId="41"/>
+      <Device Model="CNX-PAD8A" DeviceId="44" Name="CNX-PAD8A  #1 Rooms 1-8"/>
+      <Device Model="STRFGWX" DeviceId="4E" Name="STRFGWX Family Rm">
+         <Network Type="RF"/>
+      </Device>
+      <Device Model="STRFGWX" DeviceId="4F" Name="STRFGWX Game Rm">
+         <Network Type="RF"/>
+      </Device>
+      <Device Model="CNX-RMC" DeviceId="50" Name="CNX-RMC Master Bedroom"/>
+      <Device Model="CNX-RMC" DeviceId="51" Name="CNX-RMC Family Room"/>
+      <Device Model="CNX-RMC" DeviceId="52" Name="CNX-RMC Game Room"/>
+      <Device Model="BB-1550CW" DeviceId="61" Name="BB/DA-1550CW Game Rm"/>
+      <Device Model="BB-1550CW" DeviceId="62" Name="BB/DA-1550CW Family Rm"/>
+      <Device Model="C2N-DBF12" DeviceId="71" Name="MBRoom"/>
+      <Device Model="C2N-DBF12" DeviceId="72" Name="Master Bath"/>
+      <Device Model="C2N-DBF12" DeviceId="73" Name="Living Rm/Great Rm"/>
+      <Device Model="C2N-DBF12" DeviceId="74" Name="2nd Floor Balcony"/>
+      <Device Model="C2N-DBF12" DeviceId="75" Name="Lower Patio West"/>
+      <Device Model="C2N-DBF12" DeviceId="76" Name="Lower Patio East"/>
+      <Device Model="C2N-DBF12" DeviceId="77" Name="Outdoor Rocks"/>
+   </Network>
+</Device>
